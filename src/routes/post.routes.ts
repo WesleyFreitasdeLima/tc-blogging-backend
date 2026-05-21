@@ -1,5 +1,5 @@
 import express from "express";
-import PostControllerFactory from "../factories/PostControllerFactory.js";
+import PostControllerFactory from "../factories/post-controller.factory.js";
 
 const routes = express.Router();
 
