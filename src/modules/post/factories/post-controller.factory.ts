@@ -1,5 +1,5 @@
-import { PostController } from "../controllers/post.controller.js";
-import PostService from "../services/post.service.js";
+import { PostController } from "../post.controller.js";
+import PostService from "../post.service.js";
 
 class PostControllerFactory {
   static create() {

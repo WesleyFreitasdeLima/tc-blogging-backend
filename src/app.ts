@@ -6,7 +6,7 @@ import express, {
 import cors from "cors";
 import morgan from "morgan";
 import helmet from "helmet";
-import postRoutes from "./routes/post.routes.js";
+import postRoutes from "./modules/post/post.routes.js";
 
 const app = express();
 app.use(morgan("tiny"));

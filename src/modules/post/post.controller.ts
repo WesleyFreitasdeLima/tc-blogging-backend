@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
-import type { Post } from "../models/post.entity.js";
-import PostService from "../services/post.service.js";
+import type { Post } from "./post.entity.js";
+import PostService from "./post.service.js";
 
 class PostController {
   constructor(private readonly postService: PostService) {}
