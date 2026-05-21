@@ -1,4 +1,8 @@
 class PostService {
+  createPost(title: string, content: string, author: string) {
+    return { id: 3, title, content, author };
+  }
+
   getAllPosts() {
     return [
       { id: 1, title: "Primeiros passos com Express", content: "Express é uma ferramenta incrível...", author: "Dev" },
