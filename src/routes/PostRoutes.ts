@@ -1,8 +1,10 @@
 import express from "express";
-import { PostController } from "../controllers/PostController.js";
+import PostControllerFactory from "../factories/PostControllerFactory.js";
 
 const routes = express.Router();
 
-routes.get("/", PostController.getAllPosts);
+const postController = PostControllerFactory.create();
+
+routes.get("/", postController.getAllPosts.bind(postController));
 
 export default routes;

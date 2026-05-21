@@ -3,9 +3,11 @@ import type { Post } from "../models/Post.js";
 import PostService from "../services/PostService.js";
 
 class PostController {
-  static getAllPosts(req: Request, res: Response): Response {
+  constructor(private readonly postService: PostService) {}
+  
+  getAllPosts(req: Request, res: Response): Response {
     try {
-      const posts: Post[] = PostService.getAllPosts();
+      const posts: Post[] = this.postService.getAllPosts();
 
       return res.status(200).json({ 
         message: "All posts retrieved successfully",
