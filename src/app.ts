@@ -6,12 +6,15 @@ import express, {
 import cors from "cors";
 import morgan from "morgan";
 import helmet from "helmet";
+import postRoutes from "./modules/post/post.routes.js";
 
 const app = express();
 app.use(morgan("tiny"));
 app.use(cors());
 app.use(helmet());
 app.use(express.json());
+
+app.use('/api/posts', postRoutes);
 
 app.get("/health", (req: Request, res: Response) => {
   res.status(200).send("OK");
