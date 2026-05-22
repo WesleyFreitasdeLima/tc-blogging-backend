@@ -36,6 +36,29 @@ class PostController {
       return res.status(500).json({ message: "An error occurred while retrieving posts" });
     }
   }
+
+  getPostById(req: Request, res: Response): Response {
+    try {
+      const id = parseInt(req.params.id ?? "", 10);
+       
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid post ID" });
+      }
+
+      const post: Post | undefined = this.postService.getPostById(id);
+
+      if (!post) {
+        return res.status(404).json({ message: "Post not found" });
+      }
+
+      return res.status(200).json({ 
+        message: "Post retrieved successfully",
+        data: post
+      });
+    } catch (error) {
+      return res.status(500).json({ message: "An error occurred while retrieving the post" });
+    }
+  }
 }
 
 export { PostController };

@@ -10,6 +10,10 @@ class PostService {
   getAllPosts() {
     return this.postRepository.findAll();
   }
+
+  getPostById(id: number) {
+    return this.postRepository.findById(id);
+  }
 }
 
 export default PostService;

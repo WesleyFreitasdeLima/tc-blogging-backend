@@ -14,6 +14,10 @@ class PostRepository {
   findAll(): Post[] {
     return [...this.db];
   }
+
+  findById(id: number): Post | undefined {
+    return this.db.find(post => post.id === id);
+  }
 }
 
 export default PostRepository;
