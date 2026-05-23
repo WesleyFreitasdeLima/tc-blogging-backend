@@ -10,6 +10,10 @@ class UserRepository {
     this.db.push(newUser);
     return newUser;
   }
+
+  findAll(): User[] {
+    return [...this.db];
+  }
 }
 
 export default UserRepository;

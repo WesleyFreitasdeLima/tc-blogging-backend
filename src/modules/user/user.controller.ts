@@ -1,3 +1,4 @@
+import type { User } from "./user.entity.js";
 import type UserService from "./user.service.js";
 
 class UserController {
@@ -23,6 +24,19 @@ class UserController {
       });
     } catch (error) {
       return res.status(500).json({ message: "An error occurred while creating the user" });
+    }
+  }
+
+  getAllUsers(req: any, res: any) {
+    try {
+      const users: User[] = this.userService.getAllUsers();
+
+      return res.status(200).json({ 
+        message: "All users retrieved successfully",
+        data: users
+      });
+    } catch (error) {
+      return res.status(500).json({ message: "An error occurred while retrieving users" });
     }
   }
 }
