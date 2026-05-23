@@ -27,6 +27,15 @@ class UserRepository {
     }
     return undefined;
   }
+
+  deleteById(id: number): boolean {
+    const index = this.db.findIndex((user) => user.id === id);
+    if (index !== -1) {
+      this.db.splice(index, 1);
+      return true;
+    }
+    return false;
+  }
 }
 
 export default UserRepository;

@@ -9,5 +9,6 @@ routes.post("/", userController.createUser.bind(userController));
 routes.get("/", userController.getAllUsers.bind(userController));
 routes.get("/:id", userController.getUserById.bind(userController));
 routes.put("/:id", userController.editUserById.bind(userController));
+routes.delete("/:id", userController.deleteUserById.bind(userController));
 
 export default routes;

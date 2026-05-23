@@ -3,9 +3,9 @@ import type { User } from "./user.entity.js";
 import type UserService from "./user.service.js";
 
 class UserController {
-  constructor(private userService: UserService) {}
+  constructor(private readonly userService: UserService) {}
 
-  createUser(req: Request, res: Response) {
+  createUser(req: Request, res: Response): Response {
     try {
       const { name, email, password, role } = req.body;
 
@@ -28,7 +28,7 @@ class UserController {
     }
   }
 
-  getAllUsers(req: Request, res: Response) {
+  getAllUsers(req: Request, res: Response): Response {
     try {
       const users: User[] = this.userService.getAllUsers();
 
@@ -41,7 +41,7 @@ class UserController {
     }
   }
 
-  getUserById(req: Request, res: Response) {
+  getUserById(req: Request, res: Response): Response {
     try {
       const id = parseInt(req.params.id ?? "", 10);
        
@@ -64,7 +64,7 @@ class UserController {
     }
   }
 
-  editUserById(req: Request, res: Response) {
+  editUserById(req: Request, res: Response): Response {
     try {
       const id = parseInt(req.params.id ?? "", 10);
       const { name, email, password, role } = req.body;
@@ -96,6 +96,28 @@ class UserController {
       });
     } catch (error) {
       return res.status(500).json({ message: "An error occurred while updating the user" });
+    }
+  }
+
+  deleteUserById(req: Request, res: Response): Response {
+    try {
+      const id = parseInt(req.params.id ?? "", 10);
+       
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+
+      const deleted = this.userService.deleteUserById(id);
+
+      if (!deleted) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      return res.status(200).json({ 
+        message: "User deleted successfully"
+      });
+    } catch (error) {
+      return res.status(500).json({ message: "An error occurred while deleting the user" });
     }
   }
 }

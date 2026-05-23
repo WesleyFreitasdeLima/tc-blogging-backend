@@ -2,7 +2,7 @@ import type { User } from "./user.entity.js";
 import type UserRepository from "./user.repository.js";
 
 class UserService {
-  constructor(private userRepository: UserRepository) {}
+  constructor(private readonly userRepository: UserRepository) {}
 
   createUser(name: string, email: string, password: string, role: "teacher" | "student"): User {
     return this.userRepository.create({ name, email, password, role });
@@ -18,6 +18,10 @@ class UserService {
 
   editUserById(id: number, updatedFields: Partial<Omit<User, "id">>): User | undefined {
     return this.userRepository.editById(id, updatedFields);
+  }
+
+  deleteUserById(id: number): boolean {
+    return this.userRepository.deleteById(id);
   }
 }
 
