@@ -18,6 +18,15 @@ class PostRepository {
   findById(id: number): Post | undefined {
     return this.db.find(post => post.id === id);
   }
+
+  deleteById(id: number): boolean {
+    const index = this.db.findIndex(post => post.id === id);
+    if (index !== -1) {
+      this.db.splice(index, 1);
+      return true;
+    }
+    return false;
+  }
 }
 
 export default PostRepository;

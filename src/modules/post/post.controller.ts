@@ -59,6 +59,28 @@ class PostController {
       return res.status(500).json({ message: "An error occurred while retrieving the post" });
     }
   }
+
+  deletePostById(req: Request, res: Response): Response {
+    try {
+      const id = parseInt(req.params.id ?? "", 10);
+       
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid post ID" });
+      }
+
+      const deleted = this.postService.deletePostById(id);
+
+      if (!deleted) {
+        return res.status(404).json({ message: "Post not found" });
+      }
+
+      return res.status(200).json({ 
+        message: "Post deleted successfully"
+      });
+    } catch (error) {
+      return res.status(500).json({ message: "An error occurred while deleting the post" });
+    }
+  }
 }
 
 export { PostController };

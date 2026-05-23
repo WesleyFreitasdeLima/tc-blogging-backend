@@ -14,6 +14,10 @@ class PostService {
   getPostById(id: number) {
     return this.postRepository.findById(id);
   }
+
+  deletePostById(id: number) {
+    return this.postRepository.deleteById(id);
+  }
 }
 
 export default PostService;
