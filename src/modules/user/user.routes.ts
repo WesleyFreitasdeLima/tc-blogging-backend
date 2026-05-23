@@ -5,4 +5,6 @@ const routes = express.Router();
 
 const userController = UserControllerFactory.create();
 
+routes.post("/", userController.createUser.bind(userController));
+
 export default routes;
