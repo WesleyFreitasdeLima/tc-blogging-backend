@@ -7,5 +7,6 @@ const userController = UserControllerFactory.create();
 
 routes.post("/", userController.createUser.bind(userController));
 routes.get("/", userController.getAllUsers.bind(userController));
+routes.get("/:id", userController.getUserById.bind(userController));
 
 export default routes;

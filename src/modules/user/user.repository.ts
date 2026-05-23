@@ -14,6 +14,10 @@ class UserRepository {
   findAll(): User[] {
     return [...this.db];
   }
+  
+  findById(id: number): User | undefined {
+    return this.db.find((user) => user.id === id);
+  }
 }
 
 export default UserRepository;

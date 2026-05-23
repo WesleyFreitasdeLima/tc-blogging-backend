@@ -1,10 +1,11 @@
+import type { Request, Response } from "express";
 import type { User } from "./user.entity.js";
 import type UserService from "./user.service.js";
 
 class UserController {
   constructor(private userService: UserService) {}
 
-  createUser(req: any, res: any) {
+  createUser(req: Request, res: Response) {
     try {
       const { name, email, password, role } = req.body;
 
@@ -27,7 +28,7 @@ class UserController {
     }
   }
 
-  getAllUsers(req: any, res: any) {
+  getAllUsers(req: Request, res: Response) {
     try {
       const users: User[] = this.userService.getAllUsers();
 
@@ -37,6 +38,29 @@ class UserController {
       });
     } catch (error) {
       return res.status(500).json({ message: "An error occurred while retrieving users" });
+    }
+  }
+
+  getUserById(req: Request, res: Response) {
+    try {
+      const id = parseInt(req.params.id ?? "", 10);
+       
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+
+      const user: User | undefined = this.userService.getUserById(id);
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      return res.status(200).json({ 
+        message: "User retrieved successfully",
+        data: user
+      });
+    } catch (error) {
+      return res.status(500).json({ message: "An error occurred while retrieving the user" });
     }
   }
 }
