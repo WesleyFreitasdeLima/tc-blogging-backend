@@ -15,6 +15,10 @@ class UserService {
   getUserById(id: number): User | undefined {
     return this.userRepository.findById(id);
   }
+
+  editUserById(id: number, updatedFields: Partial<Omit<User, "id">>): User | undefined {
+    return this.userRepository.editById(id, updatedFields);
+  }
 }
 
 export default UserService;

@@ -18,6 +18,15 @@ class UserRepository {
   findById(id: number): User | undefined {
     return this.db.find((user) => user.id === id);
   }
+
+  editById(id: number, updatedFields: Partial<Omit<User, "id">>): User | undefined {
+    const user = this.findById(id);
+    if (user) {
+      Object.assign(user, updatedFields);
+      return user;
+    }
+    return undefined;
+  }
 }
 
 export default UserRepository;
