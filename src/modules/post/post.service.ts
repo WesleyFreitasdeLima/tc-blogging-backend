@@ -16,6 +16,10 @@ class PostService {
     return this.postRepository.findById(id);
   }
 
+  searchPostsByKeywords(keywords: string[]) {
+    return this.postRepository.searchKeywords(keywords);
+  }
+
   editPostById(id: number, updatedFields: Partial<Omit<Post, "id">>) {
     return this.postRepository.editById(id, updatedFields);
   }

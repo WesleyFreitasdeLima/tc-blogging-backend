@@ -60,6 +60,26 @@ class PostController {
     }
   }
 
+  searchPostsByKeywords(req: Request, res: Response): Response {
+    try {
+      const { keywords } = req.query;
+
+      if (!keywords || typeof keywords !== "string") {
+        return res.status(400).json({ message: "Keywords are required" });
+      }
+
+      const keywordsArray = keywords.split(",").map(k => k.trim());
+      const posts: Post[] = this.postService.searchPostsByKeywords(keywordsArray);
+
+      return res.status(200).json({ 
+        message: "Posts retrieved successfully",
+        data: posts
+      });
+    } catch (error) {
+      return res.status(500).json({ message: "An error occurred while searching posts" });
+    }
+  }
+
   editPostById(req: Request, res: Response): Response {
     try {
       const id = parseInt(req.params.id ?? "", 10);
