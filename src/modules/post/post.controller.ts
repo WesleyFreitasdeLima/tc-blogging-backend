@@ -60,6 +60,35 @@ class PostController {
     }
   }
 
+  editPostById(req: Request, res: Response): Response {
+    try {
+      const id = parseInt(req.params.id ?? "", 10);
+      const { title, content, author } = req.body;
+
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid post ID" });
+      }
+
+      const updatedFields: Partial<Omit<Post, "id">> = {};
+      if (title) updatedFields.title = title;
+      if (content) updatedFields.content = content;
+      if (author) updatedFields.author = author;
+
+      const updatedPost: Post | undefined = this.postService.editPostById(id, updatedFields);
+
+      if (!updatedPost) {
+        return res.status(404).json({ message: "Post not found" });
+      }
+
+      return res.status(200).json({ 
+        message: "Post updated successfully",
+        data: updatedPost
+      });
+    } catch (error) {
+      return res.status(500).json({ message: "An error occurred while updating the post" });
+    }
+  }
+
   deletePostById(req: Request, res: Response): Response {
     try {
       const id = parseInt(req.params.id ?? "", 10);

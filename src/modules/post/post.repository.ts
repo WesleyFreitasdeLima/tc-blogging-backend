@@ -19,6 +19,15 @@ class PostRepository {
     return this.db.find(post => post.id === id);
   }
 
+  editById(id: number, updatedFields: Partial<Omit<Post, "id">>): Post | undefined {
+    const post = this.findById(id);
+    if (post) {
+      Object.assign(post, updatedFields);
+      return post;
+    }
+    return undefined;
+  }
+
   deleteById(id: number): boolean {
     const index = this.db.findIndex(post => post.id === id);
     if (index !== -1) {
