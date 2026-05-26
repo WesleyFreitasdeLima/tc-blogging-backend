@@ -1,3 +1,4 @@
+import type { Post } from "./post.entity.js";
 import PostRepository from "./post.repository.js";
 
 class PostService {
@@ -9,6 +10,22 @@ class PostService {
 
   getAllPosts() {
     return this.postRepository.findAll();
+  }
+
+  getPostById(id: number) {
+    return this.postRepository.findById(id);
+  }
+
+  searchPostsByKeywords(keywords: string[]) {
+    return this.postRepository.searchKeywords(keywords);
+  }
+
+  editPostById(id: number, updatedFields: Partial<Omit<Post, "id">>) {
+    return this.postRepository.editById(id, updatedFields);
+  }
+
+  deletePostById(id: number) {
+    return this.postRepository.deleteById(id);
   }
 }
 
