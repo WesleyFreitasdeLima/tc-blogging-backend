@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "npx tsc",
-    "start": "node dist/server.js"
+    "start": "node dist/server.js",
+    "migration:run": "typeorm migration:run -d dist/database/typeorm.js",
+    "docker:start": "wait-on tcp:db:5432 && npm run migration:run && npm run start"
   },
   "type": "module",
   "dependencies": {
@@ -14,7 +16,11 @@
     "express": "^4.22.2",
     "helmet": "^8.1.0",
     "morgan": "^1.10.1",
-    "pg": "^8.11.5"
+    "pg": "^8.11.5",
+    "reflect-metadata": "^0.2.2",
+    "typeorm": "^0.3.30",
+    "wait-on": "^9.0.10",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
