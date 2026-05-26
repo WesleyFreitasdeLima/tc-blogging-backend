@@ -8,6 +8,7 @@ import morgan from "morgan";
 import helmet from "helmet";
 import postRoutes from "./modules/post/post.routes.js";
 import userRoutes from "./modules/user/user.routes.js";
+import authRoutes from "./modules/auth/auth.routes.js";
 
 const app = express();
 app.use(morgan("tiny"));
@@ -17,6 +18,7 @@ app.use(express.json());
 
 app.use('/api/posts', postRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/auth', authRoutes);
 
 app.get("/health", (req: Request, res: Response) => {
   res.status(200).send("OK");
