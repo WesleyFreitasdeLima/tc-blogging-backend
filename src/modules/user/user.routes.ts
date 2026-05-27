@@ -11,8 +11,8 @@ routes.post("/", userController.createUser.bind(userController));
 routes.use(verifyAuth);
 
 routes.get("/", verifyRole('teacher'), userController.getAllUsers.bind(userController));
-routes.get("/:id", userController.getUserById.bind(userController));
-routes.put("/:id", userController.editUserById.bind(userController));
-routes.delete("/:id", userController.deleteUserById.bind(userController));
+routes.get("/me", userController.getUserById.bind(userController));
+routes.put("/me", userController.editUserById.bind(userController));
+routes.delete("/me", userController.deleteUserById.bind(userController));
 
 export default routes;

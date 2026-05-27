@@ -1,16 +1,18 @@
-import type { Request, Response } from "express";
+import type { Response } from "express";
 import type { Post } from "./post.entity.js";
 import PostService from "./post.service.js";
+import type { AuthenticatedRequest } from "../../middlewares/verify-auth.middleware.js";
 
 class PostController {
   constructor(private readonly postService: PostService) {}
 
-  createPost(req: Request, res: Response): Response {
+  createPost(req: AuthenticatedRequest, res: Response): Response {
     try {
-      const { title, content, author } = req.body;
+      const { title, content } = req.body;
+      const author = req.user!.email;
 
-      if (!title || !content || !author) {
-        return res.status(400).json({ message: "Title, content, and author are required" });
+      if (!title || !content) {
+        return res.status(400).json({ message: "Title and content are required" });
       }
 
       const newPost: Post = this.postService.createPost(title, content, author);
@@ -24,7 +26,7 @@ class PostController {
     }
   }
   
-  getAllPosts(req: Request, res: Response): Response {
+  getAllPosts(req: AuthenticatedRequest, res: Response): Response {
     try {
       const posts: Post[] = this.postService.getAllPosts();
 
@@ -37,7 +39,7 @@ class PostController {
     }
   }
 
-  getPostById(req: Request, res: Response): Response {
+  getPostById(req: AuthenticatedRequest, res: Response): Response {
     try {
       const id = parseInt(req.params.id ?? "", 10);
        
@@ -60,7 +62,7 @@ class PostController {
     }
   }
 
-  searchPostsByKeywords(req: Request, res: Response): Response {
+  searchPostsByKeywords(req: AuthenticatedRequest, res: Response): Response {
     try {
       const { keywords } = req.query;
 
@@ -80,7 +82,7 @@ class PostController {
     }
   }
 
-  editPostById(req: Request, res: Response): Response {
+  editPostById(req: AuthenticatedRequest, res: Response): Response {
     try {
       const id = parseInt(req.params.id ?? "", 10);
       const { title, content, author } = req.body;
@@ -109,7 +111,7 @@ class PostController {
     }
   }
 
-  deletePostById(req: Request, res: Response): Response {
+  deletePostById(req: AuthenticatedRequest, res: Response): Response {
     try {
       const id = parseInt(req.params.id ?? "", 10);
        

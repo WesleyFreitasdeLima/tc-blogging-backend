@@ -7,9 +7,9 @@ class AuthController {
   login(req: Request, res: Response) {
     try {
       const { email, password } = req.body;
-
+      
       const accessToken = this.authService.login(email, password);
-
+      
       if (!accessToken) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
