@@ -2,6 +2,8 @@ import jwt from 'jsonwebtoken';
 import type UserService from '../user/user.service.js';
 import type { User } from '../user/user.entity.js';
 
+const JWT_SECRET = process.env.JWT_SECRET as string;
+
 class AuthService {
     constructor(private readonly userService: UserService) {}
 
@@ -19,7 +21,7 @@ class AuthService {
         };
 
         return {
-            accessToken: jwt.sign(payload, 'your_secret_key', { expiresIn: '2h' })
+            accessToken: jwt.sign(payload, JWT_SECRET, { expiresIn: '2h' })
         }
     }
 }
