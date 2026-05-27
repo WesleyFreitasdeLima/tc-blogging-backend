@@ -19,7 +19,7 @@ class AuthService {
         };
 
         return {
-            accessToken: jwt.sign(payload, 'your_secret_key', { expiresIn: '5m' })
+            accessToken: jwt.sign(payload, 'your_secret_key', { expiresIn: '2h' })
         }
     }
 }
