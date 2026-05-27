@@ -3,7 +3,17 @@ import type { Request, Response, NextFunction } from 'express';
 
 const JWT_SECRET = 'your_secret_key';
 
-export function verifyAuth(req: Request, res: Response, next: NextFunction): void {
+export interface JwtPayload {
+    sub: number;
+    email: string;
+    role: 'teacher' | 'student';
+}
+
+export interface AuthenticatedRequest extends Request {
+    user?: JwtPayload;
+}
+
+export function verifyAuth(req: AuthenticatedRequest, res: Response, next: NextFunction): void {
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -11,13 +21,23 @@ export function verifyAuth(req: Request, res: Response, next: NextFunction): voi
         return;
     }
 
-    const token = authHeader.split(' ')[1];
+    const token = authHeader.split(' ')[1] as string;
 
     try {
-        const decoded = jwt.verify(token, JWT_SECRET);
-        (req as Request & { user: unknown }).user = decoded;
+        const decoded = jwt.verify(token, JWT_SECRET) as unknown as JwtPayload;
+        req.user = decoded;
         next();
     } catch {
         res.status(401).json({ message: 'Invalid or expired token' });
     }
+}
+
+export function verifyRole(role: 'teacher' | 'student') {
+    return (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
+        if (req.user?.role !== role) {
+            res.status(403).json({ message: 'Forbidden: insufficient permissions' });
+            return;
+        }
+        next();
+    };
 }
