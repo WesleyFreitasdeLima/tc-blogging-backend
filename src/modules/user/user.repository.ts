@@ -19,6 +19,10 @@ class UserRepository {
     return this.db.find((user) => user.id === id);
   }
 
+  findByEmail(email: string): User | null {
+    return this.db.find((user) => user.email === email) || null;
+  }
+
   editById(id: number, updatedFields: Partial<Omit<User, "id">>): User | undefined {
     const user = this.findById(id);
     if (user) {

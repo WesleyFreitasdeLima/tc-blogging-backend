@@ -1,11 +1,12 @@
-import type { Request, Response } from "express";
+import type { Response } from "express";
 import type { User } from "./user.entity.js";
 import type UserService from "./user.service.js";
+import type { AuthenticatedRequest } from "../../middlewares/verify-auth.middleware.js";
 
 class UserController {
   constructor(private readonly userService: UserService) {}
 
-  createUser(req: Request, res: Response): Response {
+  createUser(req: AuthenticatedRequest, res: Response): Response {
     try {
       const { name, email, password, role } = req.body;
 
@@ -28,7 +29,7 @@ class UserController {
     }
   }
 
-  getAllUsers(req: Request, res: Response): Response {
+  getAllUsers(req: AuthenticatedRequest, res: Response): Response {
     try {
       const users: User[] = this.userService.getAllUsers();
 
@@ -41,13 +42,9 @@ class UserController {
     }
   }
 
-  getUserById(req: Request, res: Response): Response {
+  getUserById(req: AuthenticatedRequest, res: Response): Response {
     try {
-      const id = parseInt(req.params.id ?? "", 10);
-       
-      if (isNaN(id)) {
-        return res.status(400).json({ message: "Invalid user ID" });
-      }
+      const id = req.user!.sub;
 
       const user: User | undefined = this.userService.getUserById(id);
 
@@ -64,14 +61,10 @@ class UserController {
     }
   }
 
-  editUserById(req: Request, res: Response): Response {
+  editUserById(req: AuthenticatedRequest, res: Response): Response {
     try {
-      const id = parseInt(req.params.id ?? "", 10);
+      const id = req.user!.sub;
       const { name, email, password, role } = req.body;
-
-      if (isNaN(id)) {
-        return res.status(400).json({ message: "Invalid user ID" });
-      }
 
       const updatedFields: Partial<Omit<User, "id">> = {};
       if (name) updatedFields.name = name;
@@ -99,13 +92,9 @@ class UserController {
     }
   }
 
-  deleteUserById(req: Request, res: Response): Response {
+  deleteUserById(req: AuthenticatedRequest, res: Response): Response {
     try {
-      const id = parseInt(req.params.id ?? "", 10);
-       
-      if (isNaN(id)) {
-        return res.status(400).json({ message: "Invalid user ID" });
-      }
+      const id = req.user!.sub;
 
       const deleted = this.userService.deleteUserById(id);
 

@@ -16,6 +16,10 @@ class UserService {
     return this.userRepository.findById(id);
   }
 
+  getUserByEmail(email: string): User | null {
+    return this.userRepository.findByEmail(email);
+  }
+
   editUserById(id: number, updatedFields: Partial<Omit<User, "id">>): User | undefined {
     return this.userRepository.editById(id, updatedFields);
   }
