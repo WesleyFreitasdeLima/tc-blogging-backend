@@ -1,31 +1,49 @@
-import type { User } from "./user.entity.js";
+import { hash } from "bcryptjs";
+import type { IUser } from "./interfaces/user.interface.js";
 import type UserRepository from "./user.repository.js";
 
 class UserService {
   constructor(private readonly userRepository: UserRepository) {}
 
-  createUser(name: string, email: string, password: string, role: "teacher" | "student"): User {
-    return this.userRepository.create({ name, email, password, role });
+  async getAllUsers(
+    page: number,
+    limit: number,
+    search: string | undefined = undefined,
+  ): Promise<IUser[]> {
+    return await this.userRepository.findAll(page, limit, search);
   }
 
-  getAllUsers(): User[] {
-    return this.userRepository.findAll();
+  async getUserById(id: number): Promise<IUser | null> {
+    return await this.userRepository.findById(id);
   }
 
-  getUserById(id: number): User | undefined {
-    return this.userRepository.findById(id);
+  async getUserByLogin(login: string): Promise<IUser | null> {
+    return await this.userRepository.findByLogin(login);
   }
 
-  getUserByEmail(email: string): User | null {
-    return this.userRepository.findByEmail(email);
+  async createUser(
+    user: Omit<IUser, "id" | "createdAt" | "isActive">,
+  ): Promise<IUser> {
+    const hashedPassword = await hash(user.password, 10);
+
+    const newUser = Object.assign(user, {
+      createdAt: new Date(),
+      isActive: true,
+      password: hashedPassword,
+    });
+
+    return await this.userRepository.create(newUser);
   }
 
-  editUserById(id: number, updatedFields: Partial<Omit<User, "id">>): User | undefined {
-    return this.userRepository.editById(id, updatedFields);
+  async editUserById(
+    id: number,
+    updatedFields: Partial<Omit<IUser, "id" | "createdAt">>,
+  ): Promise<IUser> {
+    return await this.userRepository.editById(id, updatedFields);
   }
 
-  deleteUserById(id: number): boolean {
-    return this.userRepository.deleteById(id);
+  async deleteUserById(id: number): Promise<boolean> {
+    return await this.userRepository.deleteById(id);
   }
 }
 

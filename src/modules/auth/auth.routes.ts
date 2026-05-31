@@ -1,7 +1,8 @@
 import express from "express";
 import AuthControllerFactory from "./factories/auth-controller.factory.js";
+import { createRouter } from "../router.js";
 
-const routes = express.Router();
+const routes = createRouter();
 
 const authController = AuthControllerFactory.create();
 

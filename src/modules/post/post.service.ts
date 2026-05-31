@@ -1,31 +1,45 @@
+import type { IPost } from "./interfaces/post.interface.js";
 import type { Post } from "./post.entity.js";
 import PostRepository from "./post.repository.js";
 
 class PostService {
   constructor(private readonly postRepository: PostRepository) {}
 
-  createPost(title: string, content: string, author: string) {
-    return this.postRepository.create({ title, content, author });
+  async getAllPosts(
+    page: number,
+    limit: number,
+    search: string | undefined = undefined,
+  ): Promise<IPost[]> {
+    return await this.postRepository.findAll(page, limit, search);
   }
 
-  getAllPosts() {
-    return this.postRepository.findAll();
+  async getPostById(id: number): Promise<IPost | null> {
+    return await this.postRepository.findById(id);
   }
 
-  getPostById(id: number) {
-    return this.postRepository.findById(id);
+  async createPost(
+    post: Omit<
+      IPost,
+      "id" | "createdAt" | "updatedAt" | "updatedBy" | "isActive"
+    >,
+  ): Promise<IPost> {
+    const newPost = Object.assign(post, {
+      createdAt: new Date(),
+      isActive: true,
+    });
+
+    return await this.postRepository.create(newPost);
   }
 
-  searchPostsByKeywords(keywords: string[]) {
-    return this.postRepository.searchKeywords(keywords);
+  async editPostById(
+    id: number,
+    updatedFields: Partial<Omit<IPost, "id" | "createdAt">>,
+  ): Promise<IPost> {
+    return await this.postRepository.editById(id, updatedFields);
   }
 
-  editPostById(id: number, updatedFields: Partial<Omit<Post, "id">>) {
-    return this.postRepository.editById(id, updatedFields);
-  }
-
-  deletePostById(id: number) {
-    return this.postRepository.deleteById(id);
+  async deletePostById(id: number): Promise<boolean> {
+    return await this.postRepository.deleteById(id);
   }
 }
 

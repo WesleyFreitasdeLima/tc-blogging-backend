@@ -1,50 +1,83 @@
-import type { Post } from "./post.entity.js";
-import { database } from "../../database/database-config.service.js";
+import type { Repository } from "typeorm";
+import { appDataSource } from "../../database/typeorm.js";
+import type { IPostRepository } from "./interfaces/post-repository.interface.js";
+import type { IPost } from "./interfaces/post.interface.js";
+import { Post } from "./post.entity.js";
+import { AppNotFound } from "../../erros/not-found.js";
 
-class PostRepository {
-  private readonly db: Post[] = database as Post[];
+class PostRepository implements IPostRepository {
+  private postRepository: Repository<IPost>;
 
-  create(post: Omit<Post, "id">): Post {
-    const id = this.db.length ? Math.max(...this.db.map((p) => p.id)) + 1 : 1;
-    const newPost: Post = { id, ...post };
-    this.db.push(newPost);
-    return newPost;
+  constructor() {
+    this.postRepository = appDataSource.getRepository(Post);
   }
 
-  findAll(): Post[] {
-    return [...this.db];
-  }
+  async findAll(
+    page: number,
+    limit: number,
+    search: string | undefined = undefined,
+  ): Promise<IPost[]> {
+    const query = this.postRepository
+      .createQueryBuilder("Post")
+      .leftJoinAndSelect("Post.createdBy", "createdBy")
+      .leftJoinAndSelect("Post.updatedBy", "updatedBy");
 
-  findById(id: number): Post | undefined {
-    return this.db.find(post => post.id === id);
-  }
-
-  searchKeywords(keywords: string[]): Post[] {
-    const lowerCaseKeywords = keywords.map(k => k.toLowerCase());
-    return this.db.filter(post => 
-      lowerCaseKeywords.some(keyword => 
-        post.title.toLowerCase().includes(keyword) ||
-        post.content.toLowerCase().includes(keyword)
-      )
-    );
-  }
-
-  editById(id: number, updatedFields: Partial<Omit<Post, "id">>): Post | undefined {
-    const post = this.findById(id);
-    if (post) {
-      Object.assign(post, updatedFields);
-      return post;
+    if (search) {
+      query.andWhere(
+        `
+        Post.title ILIKE :search
+        OR Post.content ILIKE :search
+      `,
+        {
+          search: `%${search}%`,
+        },
+      );
     }
-    return undefined;
+
+    return query
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getMany();
   }
 
-  deleteById(id: number): boolean {
-    const index = this.db.findIndex(post => post.id === id);
-    if (index !== -1) {
-      this.db.splice(index, 1);
-      return true;
+  async findById(id: number): Promise<IPost | null> {
+    return await this.postRepository.findOne({
+      where: { id: id },
+      relations: ["createdBy", "updatedBy"],
+    });
+  }
+
+  create(user: Omit<IPost, "id">): Promise<IPost> {
+    const entity = this.postRepository.create(user);
+
+    return this.postRepository.save(entity);
+  }
+
+  async editById(
+    id: number,
+    updatedFields: Partial<Omit<IPost, "id">>,
+  ): Promise<IPost> {
+    const existingPost = await this.postRepository.findOne({
+      where: { id },
+    });
+
+    if (!existingPost) {
+      throw new AppNotFound("Post");
     }
-    return false;
+
+    Object.assign(existingPost, updatedFields);
+
+    return this.postRepository.save(existingPost);
+  }
+
+  async deleteById(id: number): Promise<boolean> {
+    const result = await this.postRepository.delete(id);
+
+    if (!result.affected) {
+      return false;
+    }
+
+    return result.affected > 0;
   }
 }
 
