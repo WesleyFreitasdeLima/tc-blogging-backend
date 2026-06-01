@@ -1,112 +1,135 @@
-import type { Response } from "express";
-import type { User } from "./user.entity.js";
+import type { Request, Response } from "express";
 import type UserService from "./user.service.js";
-import type { AuthenticatedRequest } from "../../middlewares/verify-auth.middleware.js";
+import type { IUser } from "./interfaces/user.interface.js";
+import z from "zod";
+import { UserRoleEnum } from "../../enum/user-role.enum.js";
+import { AppNotFound } from "../../erros/not-found.js";
+import { QueryFailedError } from "typeorm";
+import { AppRegraNegocio } from "../../erros/regra-negocio.js";
 
+const createUserSchema = z.object({
+  name: z.string(),
+  username: z.string(),
+  password: z.string(),
+  email: z.string(),
+  role: z.enum(UserRoleEnum),
+});
+
+const updateUserSchema = createUserSchema
+  .extend({
+    isActive: z.boolean(),
+  })
+  .partial()
+  .refine((data) => Object.keys(data).length > 0, {
+    message: "Please provide at least one field for updating.",
+  })
+  .transform((data) =>
+    Object.fromEntries(
+      Object.entries(data).filter(([_, value]) => value !== undefined),
+    ),
+  );
+
+const idParamschema = z.object({
+  id: z.coerce.number(),
+});
 class UserController {
   constructor(private readonly userService: UserService) {}
 
-  createUser(req: AuthenticatedRequest, res: Response): Response {
+  async getAllUsers(req: Request, res: Response): Promise<Response> {
+    const registerQuerySchema = z.object({
+      page: z.coerce.number().default(1),
+      limit: z.coerce.number().default(10),
+    });
+
+    const { page, limit } = registerQuerySchema.parse(req.query);
+
+    const users: IUser[] = await this.userService.getAllUsers(page, limit);
+
+    return res.status(200).json({
+      message: "All users retrieved successfully",
+      data: users.map(({ password, ...rest }) => rest),
+    });
+  }
+
+  async getUserById(req: Request, res: Response): Promise<Response> {
+    const { id } = idParamschema.parse(req.params);
+
+    const user: IUser | null = await this.userService.getUserById(id);
+
+    if (!user) {
+      throw new AppNotFound("User");
+    }
+
+    return res.status(200).json({
+      message: "User retrieved successfully",
+      data: (({ password, ...rest }) => rest)(user),
+    });
+  }
+
+  async createUser(req: Request, res: Response): Promise<Response> {
+    const data = createUserSchema.parse(req.body);
     try {
-      const { name, email, password, role } = req.body;
+      const newUser = await this.userService.createUser(data);
 
-      if (!name || !email || !password || !role) {
-        return res.status(400).json({ message: "Name, email, password, and role are required" });
-      }
-
-      if (role !== "teacher" && role !== "student") {
-        return res.status(400).json({ message: "Role must be either 'teacher' or 'student'" });
-      }
-
-      const newUser = this.userService.createUser(name, email, password, role);
-
-      return res.status(201).json({ 
+      return res.status(201).json({
         message: "User created successfully",
-        data: newUser
+        data: (({ password, ...rest }) => rest)(newUser),
       });
     } catch (error) {
-      return res.status(500).json({ message: "An error occurred while creating the user" });
+      if (
+        error instanceof QueryFailedError &&
+        error.driverError?.code === "23505"
+      ) {
+        throw new AppRegraNegocio("Username or email already exists.");
+      }
+      throw error;
     }
   }
 
-  getAllUsers(req: AuthenticatedRequest, res: Response): Response {
+  async editUserById(req: Request, res: Response): Promise<Response> {
+    const { id } = idParamschema.parse(req.params);
+
+    const data = updateUserSchema.parse(req.body);
+
     try {
-      const users: User[] = this.userService.getAllUsers();
+      const updatedUser = await this.userService.editUserById(id, data);
 
-      return res.status(200).json({ 
-        message: "All users retrieved successfully",
-        data: users
-      });
-    } catch (error) {
-      return res.status(500).json({ message: "An error occurred while retrieving users" });
-    }
-  }
-
-  getUserById(req: AuthenticatedRequest, res: Response): Response {
-    try {
-      const id = req.user!.sub;
-
-      const user: User | undefined = this.userService.getUserById(id);
-
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      return res.status(200).json({ 
-        message: "User retrieved successfully",
-        data: user
-      });
-    } catch (error) {
-      return res.status(500).json({ message: "An error occurred while retrieving the user" });
-    }
-  }
-
-  editUserById(req: AuthenticatedRequest, res: Response): Response {
-    try {
-      const id = req.user!.sub;
-      const { name, email, password, role } = req.body;
-
-      const updatedFields: Partial<Omit<User, "id">> = {};
-      if (name) updatedFields.name = name;
-      if (email) updatedFields.email = email;
-      if (password) updatedFields.password = password;
-      if (role) {
-        if (role !== "teacher" && role !== "student") {
-          return res.status(400).json({ message: "Role must be either 'teacher' or 'student'" });
-        }
-        updatedFields.role = role;
-      }
-
-      const updatedUser = this.userService.editUserById(id, updatedFields);
-
-      if (!updatedUser) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      return res.status(200).json({ 
+      return res.status(200).json({
         message: "User updated successfully",
-        data: updatedUser
+        data: (({ password, ...rest }) => rest)(updatedUser),
       });
     } catch (error) {
-      return res.status(500).json({ message: "An error occurred while updating the user" });
+      if (
+        error instanceof QueryFailedError &&
+        error.driverError?.code === "23505"
+      ) {
+        throw new AppRegraNegocio("Username or email already exists.");
+      }
+      throw error;
     }
   }
 
-  deleteUserById(req: AuthenticatedRequest, res: Response): Response {
-    try {
-      const id = req.user!.sub;
+  async deleteUserById(req: Request, res: Response): Promise<Response> {
+    const { id } = idParamschema.parse(req.params);
 
-      const deleted = this.userService.deleteUserById(id);
+    try {
+      const deleted = await this.userService.deleteUserById(id);
 
       if (!deleted) {
-        return res.status(404).json({ message: "User not found" });
+        throw new AppNotFound("User");
       }
 
-      return res.status(200).json({ 
-        message: "User deleted successfully"
+      return res.status(200).json({
+        message: "User deleted successfully",
       });
     } catch (error) {
-      return res.status(500).json({ message: "An error occurred while deleting the user" });
+      if (
+        error instanceof QueryFailedError &&
+        error.driverError?.code === "23503"
+      ) {
+        throw new AppRegraNegocio("User with related posts.");
+      }
+      throw error;
     }
   }
 }

@@ -1,43 +1,54 @@
-import jwt from 'jsonwebtoken';
-import type { Request, Response, NextFunction } from 'express';
+import jwt from "jsonwebtoken";
+import type { Request, Response, NextFunction } from "express";
+import { AppAuthForbiden, AppAuthNegate } from "../erros/autth.js";
+import { UserRoleEnum } from "../enum/user-role.enum.js";
+import { env } from "../env/index.js";
 
-const JWT_SECRET = process.env.JWT_SECRET as string;
+const JWT_SECRET = env.JWT_SECRET as string;
 
 export interface JwtPayload {
-    sub: number;
-    email: string;
-    role: 'teacher' | 'student';
+  sub: number;
+  role: UserRoleEnum;
 }
 
 export interface AuthenticatedRequest extends Request {
-    user?: JwtPayload;
+  user: JwtPayload;
 }
 
-export function verifyAuth(req: AuthenticatedRequest, res: Response, next: NextFunction): void {
-    const authHeader = req.headers.authorization;
+export function verifyAuth(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void {
+  const authHeader = req.headers.authorization;
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        res.status(401).json({ message: 'Missing or invalid authorization header' });
-        return;
-    }
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    throw new AppAuthNegate("Missing or invalid authorization header");
+  }
+  console.log(authHeader);
+  const token = authHeader.split(" ")[1] as string;
 
-    const token = authHeader.split(' ')[1] as string;
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET) as unknown as JwtPayload;
+    req.user = decoded;
 
-    try {
-        const decoded = jwt.verify(token, JWT_SECRET) as unknown as JwtPayload;
-        req.user = decoded;
-        next();
-    } catch {
-        res.status(401).json({ message: 'Invalid or expired token' });
-    }
+    next();
+  } catch {
+    throw new AppAuthNegate("Invalid or expired token");
+  }
 }
 
-export function verifyRole(role: 'teacher' | 'student') {
-    return (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
-        if (req.user?.role !== role) {
-            res.status(403).json({ message: 'Forbidden: insufficient permissions' });
-            return;
-        }
-        next();
-    };
+export function verifyRole(role: UserRoleEnum) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      throw new AppAuthForbiden("Forbidden: insufficient permissions");
+    }
+    if (req.user.role !== UserRoleEnum.ADMIN) {
+      if (req.user.role !== role) {
+        throw new AppAuthForbiden("Forbidden: insufficient permissions");
+      }
+    }
+
+    next();
+  };
 }

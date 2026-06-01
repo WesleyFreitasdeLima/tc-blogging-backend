@@ -1,44 +1,86 @@
-import { databaseUser } from "../../database/database-config.service.js";
-import type { User } from "./user.entity.js";
+import type { Repository } from "typeorm";
+import { appDataSource } from "../../database/typeorm.js";
+import type { IUserRepository } from "./interfaces/user-repository.interface.js";
+import { User } from "./user.entity.js";
+import type { IUser } from "./interfaces/user.interface.js";
+import { AppNotFound } from "../../erros/not-found.js";
 
-class UserRepository {
-  private readonly db: User[] = databaseUser as User[];
+class UserRepository implements IUserRepository {
+  private repository: Repository<User>;
 
-  create(user: Omit<User, "id">): User {
-    const id = this.db.length ? Math.max(...this.db.map((u) => u.id)) + 1 : 1;
-    const newUser: User = { id, ...user };
-    this.db.push(newUser);
-    return newUser;
+  constructor() {
+    this.repository = appDataSource.getRepository(User);
   }
 
-  findAll(): User[] {
-    return [...this.db];
-  }
-  
-  findById(id: number): User | undefined {
-    return this.db.find((user) => user.id === id);
-  }
+  async findAll(
+    page: number,
+    limit: number,
+    search: string | undefined = undefined,
+  ): Promise<IUser[]> {
+    const query = this.repository.createQueryBuilder("User");
 
-  findByEmail(email: string): User | null {
-    return this.db.find((user) => user.email === email) || null;
-  }
-
-  editById(id: number, updatedFields: Partial<Omit<User, "id">>): User | undefined {
-    const user = this.findById(id);
-    if (user) {
-      Object.assign(user, updatedFields);
-      return user;
+    if (search) {
+      query.andWhere(
+        `
+        User.name ILIKE :search
+        OR User.username ILIKE :search
+        OR User.email ILIKE :search
+      `,
+        {
+          search: `%${search}%`,
+        },
+      );
     }
-    return undefined;
+
+    return query
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getMany();
   }
 
-  deleteById(id: number): boolean {
-    const index = this.db.findIndex((user) => user.id === id);
-    if (index !== -1) {
-      this.db.splice(index, 1);
-      return true;
+  async findById(id: number): Promise<IUser | null> {
+    return await this.repository.findOne({
+      where: { id: id },
+    });
+  }
+
+  async findByLogin(login: string): Promise<IUser | null> {
+    return await this.repository.findOne({
+      where: { username: login },
+    });
+  }
+
+  create(user: Omit<IUser, "id">): Promise<IUser> {
+    const entity = this.repository.create(user);
+
+    return this.repository.save(entity);
+  }
+
+  async editById(
+    id: number,
+    updatedFields: Partial<Omit<IUser, "id">>,
+  ): Promise<IUser> {
+    const existingUser = await this.repository.findOne({
+      where: { id },
+    });
+
+    if (!existingUser) {
+      throw new AppNotFound("user");
     }
-    return false;
+
+    Object.assign(existingUser, updatedFields);
+
+    return this.repository.save(existingUser);
+  }
+
+  async deleteById(id: number): Promise<boolean> {
+    const result = await this.repository.delete(id);
+
+    if (!result.affected) {
+      return false;
+    }
+
+    return result.affected > 0;
   }
 }
 
