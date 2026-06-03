@@ -11,24 +11,13 @@ const routes = createRouter();
 
 const userController = UserControllerFactory.create();
 
+routes.post("/", userController.createUser.bind(userController));
+
 routes.use(verifyAuth);
 
-routes.get(
-  "/",
-  verifyRole(UserRoleEnum.ADMIN),
-  userController.getAllUsers.bind(userController),
-);
-routes.get("/:id", userController.getUserById.bind(userController));
-routes.post(
-  "/",
-  verifyRole(UserRoleEnum.ADMIN),
-  userController.createUser.bind(userController),
-);
-routes.put("/:id", userController.editUserById.bind(userController));
-routes.delete(
-  "/:id",
-  verifyRole(UserRoleEnum.ADMIN),
-  userController.deleteUserById.bind(userController),
-);
+routes.get("/", verifyRole(UserRoleEnum.ADMIN), userController.getAllUsers.bind(userController));
+routes.get("/me", userController.getMe.bind(userController));
+routes.put("/me", userController.editMe.bind(userController));
+routes.delete("/me", userController.deleteMe.bind(userController));
 
 export default routes;

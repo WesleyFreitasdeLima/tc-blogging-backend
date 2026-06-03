@@ -6,6 +6,7 @@ import { UserRoleEnum } from "../../enum/user-role.enum.js";
 import { AppNotFound } from "../../erros/not-found.js";
 import { QueryFailedError } from "typeorm";
 import { AppRegraNegocio } from "../../erros/regra-negocio.js";
+import { AppAuthNegate } from "../../erros/autth.js";
 
 const createUserSchema = z.object({
   name: z.string(),
@@ -28,10 +29,6 @@ const updateUserSchema = createUserSchema
       Object.entries(data).filter(([_, value]) => value !== undefined),
     ),
   );
-
-const idParamschema = z.object({
-  id: z.coerce.number(),
-});
 class UserController {
   constructor(private readonly userService: UserService) {}
 
@@ -51,8 +48,12 @@ class UserController {
     });
   }
 
-  async getUserById(req: Request, res: Response): Promise<Response> {
-    const { id } = idParamschema.parse(req.params);
+  async getMe(req: Request, res: Response): Promise<Response> {
+    const id = req.user?.sub;
+
+    if (!id) {
+      throw new AppAuthNegate("Missing authenticated user");
+    }
 
     const user: IUser | null = await this.userService.getUserById(id);
 
@@ -86,8 +87,12 @@ class UserController {
     }
   }
 
-  async editUserById(req: Request, res: Response): Promise<Response> {
-    const { id } = idParamschema.parse(req.params);
+  async editMe(req: Request, res: Response): Promise<Response> {
+    const id = req.user?.sub;
+
+    if (!id) {
+      throw new AppAuthNegate("Missing authenticated user");
+    }
 
     const data = updateUserSchema.parse(req.body);
 
@@ -109,8 +114,12 @@ class UserController {
     }
   }
 
-  async deleteUserById(req: Request, res: Response): Promise<Response> {
-    const { id } = idParamschema.parse(req.params);
+  async deleteMe(req: Request, res: Response): Promise<Response> {
+    const id = req.user?.sub;
+
+    if (!id) {
+      throw new AppAuthNegate("Missing authenticated user");
+    }
 
     try {
       const deleted = await this.userService.deleteUserById(id);

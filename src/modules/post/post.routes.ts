@@ -12,28 +12,13 @@ const routes = createRouter();
 const postController = PostControllerFactory.create();
 
 routes.get("/", postController.getAllPosts.bind(postController));
+routes.get("/search", postController.searchPostsByKeywords.bind(postController));
+routes.get("/:id", postController.getPostById.bind(postController));
 
-routes.get(
-  "/search",
-  postController.searchPostsByKeywords.bind(postController),
-);
 routes.use(verifyAuth);
 
-routes.post(
-  "/",
-  verifyRole(UserRoleEnum.TEACHER),
-  postController.createPost.bind(postController),
-);
-routes.get("/:id", postController.getPostById.bind(postController));
-routes.put(
-  "/:id",
-  verifyRole(UserRoleEnum.TEACHER),
-  postController.editPostById.bind(postController),
-);
-routes.delete(
-  "/:id",
-  verifyRole(UserRoleEnum.TEACHER),
-  postController.deletePostById.bind(postController),
-);
+routes.post("/", verifyRole(UserRoleEnum.TEACHER), postController.createPost.bind(postController));
+routes.put("/:id",  verifyRole(UserRoleEnum.TEACHER), postController.editPostById.bind(postController));
+routes.delete("/:id", verifyRole(UserRoleEnum.TEACHER), postController.deletePostById.bind(postController));
 
 export default routes;
