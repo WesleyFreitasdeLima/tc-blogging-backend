@@ -1,353 +1,231 @@
 # 🚀 TC Blogging Backend
 
-API REST desenvolvida em Node.js + TypeScript utilizando arquitetura em camadas, TypeORM, PostgreSQL e Docker.
+API REST desenvolvida em Node.js + TypeScript, com Express, TypeORM e PostgreSQL.
 
----
+## Tecnologias
 
-# 📚 Tecnologias Utilizadas
+- Node.js
+- TypeScript
+- Express
+- TypeORM
+- PostgreSQL
+- Zod
+- JWT
+- Bcryptjs
+- Docker e Docker Compose
 
-- Node.js: Runtime JavaScript utilizado no backend para execução de alta performance.
-- TypeScript: Superset do JavaScript que adiciona tipagem estática, aumentando a segurança e organização do código.
-- Zod: Biblioteca de validação de esquemas para garantir a integridade dos dados recebidos.
-- Express: Framework minimalista para criação de APIs e gerenciamento de rotas.
-- JWT (JSON Web Token): Utilizado para autenticação e controle de acesso baseado em tokens.
-- Bcryptjs: Biblioteca para hash e proteção de senhas de usuários.
-- TypeORM: ORM que facilita a comunicação com o banco de dados utilizando objetos em vez de SQL puro.
-- PostgreSQL: Banco de dados relacional robusto e confiável.
-- Docker: Ferramenta para criação de ambientes isolados e padronizados.
-- Docker Compose: Utilizado para orquestrar múltiplos containers de forma simples.
-
----
-
-# 📁 Estrutura do Projeto
+## Estrutura do projeto
 
 ```bash
 src/
 ├── database/
 │   ├── migrations/
 │   └── typeorm.ts
-│
-├── enun/
+├── enum/
 │   └── user-role.enum.ts
-│
 ├── env/
 │   └── index.ts
-│
-├── entities/
-│   ├── interfaces/
-│   │   ├── post.interface.ts
-│   │   └── user.interface.ts
-│   ├── post.entity.ts
-│   └── user.entity.ts
-│
 ├── erros/
 │   ├── autth.ts
 │   ├── error.ts
 │   ├── not-found.ts
 │   └── regra-negocio.ts
-│
 ├── middlewares/
 │   ├── error.middleware.ts
 │   ├── not-found-router.middleware.ts
 │   └── verify-auth.middleware.ts
-│
 ├── modules/
 │   ├── auth/
-│   │   ├── factories/
-│   │   │    └── auth-controller.factory.ts
-│   │   ├── auth.controller.ts
-│   │   ├── auth.routes.ts
-│   │   └── auth.service.ts
-│   │
 │   ├── post/
-│   │   ├── factories/
-│   │   │    └── post-controller.factory.ts
-│   │   ├── interfaces/
-│   │   │    ├── post-repository.interface.ts
-│   │   │    └── post.interface.ts
-│   │   ├── post.controller.ts
-│   │   ├── post.entity.ts
-│   │   ├── post.repository.ts
-│   │   ├── post.routes.ts
-│   │   └── post.service.ts
-│   │
 │   ├── user/
-│   │   ├── factories/
-│   │   │    └── user-controller.factory.ts
-│   │   ├── interfaces/
-│   │   │    ├── user-repository.interface.ts
-│   │   │    └── user.interface.ts
-│   │   ├── user.controller.ts
-│   │   ├── user.entity.ts
-│   │   ├── user.repository.ts
-│   │   ├── user.routes.ts
-│   │   └── user.service.ts
-│   │
 │   └── router.ts
-│
 ├── types/
 │   └── express.d.ts
-│
 ├── app.ts
 └── server.ts
 ```
 
----
+## Configuracao de ambiente
 
-# ⚙️ Configuração do Ambiente
-
-Crie um arquivo `.env` na raiz do projeto com a estrutura abaixo:
+Crie o arquivo .env na raiz com base em .env.example:
 
 ```env
-NODE_ENV=development|production|test
+NODE_ENV=development
 
 API_PORT=3000
 
-DB_PORT=your_db_port
-DB_HOST=your_db_host
-DB_USER=your_db_user
-DB_PASSWORD=your_db_password
-DB_NAME=your_db_name
+DB_PORT=5432
+DB_HOST=localhost
+DB_USER=postgres
+DB_PASSWORD=postgres
+DB_NAME=tc_blog
 
 JWT_SECRET=your_secret_key
 ```
 
-Ou faça uma cópia do arquivo `.env.example` na raiz do projeto com o nome `.env` e altera os dados conforme a necessidade.
+Observacoes:
 
----
+- Para execucao com Docker, mantenha DB_PORT=5432 para compatibilidade com o container do Postgres.
+- A aplicacao valida as variaveis em tempo de inicializacao.
 
-# 🐳 Executando com Docker
+## Como executar
 
-## Subir containers
+### Ambiente local
 
-```bash
-docker compose up --build
-```
-
----
-
-# ▶️ Scripts Disponíveis
-
-## Ambiente de desenvolvimento
+1. Instalar dependencias:
 
 ```bash
-npm run dev
+npm install
 ```
 
-## Build da aplicação
+2. Compilar o projeto (necessario antes das migrations):
 
 ```bash
 npm run build
 ```
 
-## Executar aplicação compilada
-
-```bash
-npm run start
-```
-
-## Executar as migrations
+3. Rodar migrations:
 
 ```bash
 npm run migration:run
 ```
 
-## Inicialização Docker
+4. Subir a API em desenvolvimento:
 
 ```bash
-npm run docker:start
+npm run dev
 ```
 
----
+### Docker
 
-# 🗄️ Banco de Dados
+```bash
+docker compose up --build
+```
 
-O projeto utiliza PostgreSQL com TypeORM.
+O container da API executa migrations automaticamente na inicializacao.
 
-As tabelas são criadas através de migrations.
+## Scripts
 
----
+- npm run dev: sobe API com watch.
+- npm run build: compila TypeScript para dist/.
+- npm run start: inicia API compilada.
+- npm run migration:run: executa migrations usando dist/database/typeorm.js.
+- npm run docker:start: aguarda o banco, executa migration e sobe a API.
 
-# 📌 Entidade User
+## Banco de dados
 
-| Campo     | Tipo    |
-| --------- | ------- |
-| id        | integer |
-| name      | varchar |
-| username  | varchar |
-| password  | varchar |
-| email     | varchar |
-| role      | varchar |
-| is_active | boolean |
+As tabelas sao criadas pela migration CreateTables1779748545908.
 
-## User Default
+Usuario padrao criado na migration:
 
-Login: admin
+- login: admin
+- senha: 123456
+- role: admin
 
-Password: 123456
+## Regras de autenticacao e perfil
 
-# 📌 Entidade Post
+- JWT no cabecalho Authorization no formato Bearer TOKEN.
+- Perfis disponiveis: admin e teacher.
+- admin acessa todas as rotas protegidas.
+- teacher acessa rotas protegidas de post.
 
-| Campo      | Tipo      |
-| ---------- | --------- |
-| id         | integer   |
-| title      | varchar   |
-| content    | text      |
-| created_at | timestamp |
-| created_by | integer   |
-| updated_at | timestamp |
-| updated_by | integer   |
-| is_active  | boolean   |
+## Endpoints
 
----
+Base URL local: http://localhost:3000
 
-# 📡 Endpoints
-
-## Buscar users
+### Health check
 
 ```http
-GET /api/users
+GET /health
 ```
 
-### Query Parameters
-
-| Parâmetro | Tipo   | Obrigatório | Padrão | Descrição                                   |
-| --------- | ------ | ----------- | ------ | ------------------------------------------- |
-| page      | number | Não         | 1      | Número da página.                           |
-| limit     | number | Não         | 10     | Quantidade de registros por página.         |
-| search    | string | Não         | -      | Texto para filtrar username, name or email. |
-
----
-
-## Buscar user por ID
+### Autenticacao
 
 ```http
-GET /api/users/:id
+POST /api/auth/login
 ```
 
----
-
-## Criar user
-
-```http
-POST /api/users
-```
-
-### Body
+Body:
 
 ```json
 {
-  "name": "Nome usuário",
-  "username": "Alias usuário",
-  "password": "Senha usuário",
-  "email": "E-mail usuário",
-  "role": "admin" | "teacher",
+  "login": "admin",
+  "password": "123456"
 }
 ```
 
----
+Observacao: o campo login utiliza o username do usuario.
 
-## Atualizar user
+### Usuarios
 
-```http
-PUT /api/users/:id
+- POST /api/users (publico) - cria usuario.
+- GET /api/users?page=1&limit=10 (admin) - lista usuarios.
+- GET /api/users/me (autenticado) - retorna usuario logado.
+- PUT /api/users/me (autenticado) - atualiza usuario logado.
+- DELETE /api/users/me (autenticado) - remove usuario logado.
+
+Body de criacao de usuario (POST /api/users):
+
+```json
+{
+  "name": "Nome usuario",
+  "username": "alias",
+  "password": "senha",
+  "email": "email@dominio.com",
+  "role": "admin"
+}
 ```
 
----
+Body de atualizacao (PUT /api/users/me):
 
-## Deletar user
-
-```http
-DELETE /api/users/:id
+```json
+{
+  "name": "Novo nome",
+  "password": "nova_senha",
+  "isActive": true
+}
 ```
 
----
+### Posts
 
-## Buscar posts
+- GET /api/posts?page=1&limit=10 (publico) - lista posts.
+- GET /api/posts/search?page=1&limit=10&search=texto (publico) - busca por titulo/conteudo.
+- GET /api/posts/:id (publico) - busca post por id.
+- POST /api/posts (teacher/admin) - cria post.
+- PUT /api/posts/:id (teacher/admin) - atualiza post.
+- DELETE /api/posts/:id (teacher/admin) - remove post.
 
-```http
-GET /api/posts
-```
-
-### Query Parameters
-
-| Parâmetro | Tipo   | Obrigatório | Padrão | Descrição                           |
-| --------- | ------ | ----------- | ------ | ----------------------------------- |
-| page      | number | Não         | 1      | Número da página.                   |
-| limit     | number | Não         | 10     | Quantidade de registros por página. |
-
----
-
-## Buscar post por palavra chave
-
-```http
-GET /api/posts/search
-```
-
-### Query Parameters
-
-| Parâmetro | Tipo   | Obrigatório | Padrão | Descrição                                                           |
-| --------- | ------ | ----------- | ------ | ------------------------------------------------------------------- |
-| page      | number | Não         | 1      | Número da página.                                                   |
-| limit     | number | Não         | 10     | Quantidade de registros por página.                                 |
-| search    | string | Não         | -      | Texto para filtrar título ou contéudo dos post, username ou e-mail. |
-
----
-
-## Buscar post por ID
-
-```http
-GET /api/posts/:id
-```
-
----
-
-## Criar post
-
-```http
-POST /api/posts
-```
-
-### Body
+Body de criacao de post:
 
 ```json
 {
   "title": "Meu post",
-  "content": "Conteúdo do post"
+  "content": "Conteudo do post"
 }
 ```
 
----
+Body de atualizacao de post:
 
-## Atualizar post
-
-```http
-PUT /api/posts/:id
+```json
+{
+  "title": "Novo titulo",
+  "content": "Conteudo atualizado",
+  "isActive": true
+}
 ```
 
----
+## Formato de resposta
 
-## Deletar post
+As respostas seguem o padrao abaixo (o campo data pode nao existir em rotas de delete):
 
-```http
-DELETE /api/posts/:id
+```json
+{
+  "message": "descricao",
+  "data": {}
+}
 ```
 
----
-
-# ✅ Funcionalidades
-
-- CRUD de Users e Posts
-- Integração com PostgreSQL
-- Migrations automáticas
-- Dockerização da aplicação
-- TypeORM
-- Arquitetura em camadas
-- TypeScript tipado
-
----
-
-# 👨‍💻 Autor
+## Autores
 
 - RM371918 - Carlos Eduardo Mendonça da Silva
 - RM371258 - Douglas Lacerda da Conceíção
