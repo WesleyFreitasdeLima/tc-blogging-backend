@@ -39,7 +39,13 @@ class UserService {
     id: number,
     updatedFields: Partial<Omit<IUser, "id" | "createdAt">>,
   ): Promise<IUser> {
-    return await this.userRepository.editById(id, updatedFields);
+    const fieldsToUpdate = { ...updatedFields };
+
+    if (fieldsToUpdate.password) {
+      fieldsToUpdate.password = await hash(fieldsToUpdate.password, 10);
+    }
+
+    return await this.userRepository.editById(id, fieldsToUpdate);
   }
 
   async deleteUserById(id: number): Promise<boolean> {
