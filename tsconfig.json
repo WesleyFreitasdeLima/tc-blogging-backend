@@ -2,9 +2,10 @@
   "compilerOptions": {
     "rootDir": "./src",
     "outDir": "./dist",
-    "module": "nodenext",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
     "target": "esnext",
-    "types": ["node"],
+    "types": ["node", "jest"],
     "sourceMap": true,
     "declaration": true,
     "declarationMap": true,
@@ -18,8 +19,13 @@
     "moduleDetection": "force",
     "skipLibCheck": true,
 
+    "esModuleInterop": true,
+
     /* Necessários para a utilização do typeorm/reflec-metada*/
     "experimentalDecorators": true /* Enable experimental support for legacy experimental decorators. */,
     "emitDecoratorMetadata": true /* Emit design-type metadata for decorated declarations in source files. */
-  }
+  },
+
+  "include": ["src"],
+  "exclude": ["tests", "**/*.test.ts", "**/*.spec.ts"]
 }

@@ -16,11 +16,11 @@ export const appDataSource = new DataSource({
   logging: env.NODE_ENV === "development",
 });
 
-appDataSource
-  .initialize()
-  .then(() => {
-    console.log("Databae with typeorm connected");
-  })
-  .catch((error) => {
-    console.error("Error connection ");
-  });
+export async function connectDatabase() {
+  if (!appDataSource.isInitialized) {
+    await appDataSource.initialize();
+    console.log("Database with typeorm connected");
+  }
+
+  throw new Error("❌ Error connection")
+}

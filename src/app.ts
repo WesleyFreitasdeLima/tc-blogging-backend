@@ -24,9 +24,7 @@ app.use("/api/posts", postRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
 
-app.get("/health", (req: Request, res: Response) => {
-  res.status(200).send  ("OK");
-});
+app.get("/health", (_, res: Response) => res.status(200).send("OK"));
 
 app.use(notFoundMiddleware);
 
