@@ -15,12 +15,3 @@ export const appDataSource = new DataSource({
   migrations: [CreateTables1779748545908],
   logging: env.NODE_ENV === "development",
 });
-
-export async function connectDatabase() {
-  if (!appDataSource.isInitialized) {
-    await appDataSource.initialize();
-    console.log("Database with typeorm connected");
-  }
-
-  throw new Error("❌ Error connection")
-}

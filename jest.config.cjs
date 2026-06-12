@@ -13,6 +13,8 @@ module.exports = {
     ],
   },
 
+  setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
+
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',
   },
