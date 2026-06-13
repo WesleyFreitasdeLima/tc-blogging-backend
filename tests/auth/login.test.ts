@@ -3,7 +3,7 @@ import request from "supertest";
 
 import app from "../../src/app";
 
-describe('POST /auth/login', () => {
+describe('POST /api/auth/login', () => {
   it('should authenticate the user when valid credentials are provided', async () => {
     const response = await request(app)
       .post('/api/auth/login')
