@@ -24,4 +24,4 @@ COPY --from=builder /app/dist ./dist
 # Documents the port the application listens on (does not automatically publish it)
 EXPOSE 3000
 
-CMD ["npm", "run", "start"]
+CMD ["npm", "run", "start:prod"]
