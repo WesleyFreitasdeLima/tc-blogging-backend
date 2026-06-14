@@ -5,7 +5,7 @@ on:
     branches:
       - master
       - "feat/*"
-
+  # Allows manual execution from the GitHub Actions UI
   workflow_dispatch:
 
 jobs:
@@ -20,13 +20,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "24"
-          cache: "npm"
+          cache: "npm" # Caches npm packages to speed up subsequent runs
 
       - name: Install Dependencies
-        run: npm ci
+        run: npm ci # Uses 'ci' instead of 'install' to use package-lock.json
 
       - name: Run Unit Tests
         run: npm run test
+
+      # The following steps are restricted to the 'master' branch to prevent deploying incomplete features.
 
       - name: Set up Docker Buildx
         if: github.ref == 'refs/heads/master'
@@ -49,4 +51,4 @@ jobs:
 
       - name: Run Deploy Hook
         if: github.ref == 'refs/heads/master'
-        run: curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
+        run: curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }} # Triggers the Render platform to pull the newly pushed image and deploy
