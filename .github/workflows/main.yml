@@ -1,42 +1,52 @@
 name: Build, Test, Push Docker Image and Deploy on Render
 
 on:
-    push:
-        branches:
-            - master
-            - "feat/*"
-    workflow_dispatch:
+  push:
+    branches:
+      - master
+      - "feat/*"
+  workflow_dispatch:
 
 jobs:
-    build-and-test:
-        runs-on: ubuntu-latest
+  build-and-test:
+    runs-on: ubuntu-latest
 
-        env:
-            DOCKER_USERNAME: ${{secrets.DOCKER_USERNAME}}
-            DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
-            RENDER_DEPLOY_HOOK: ${{secrets.RENDER_DEPLOY_HOOK}}
+    env:
+      DOCKER_USERNAME: ${{secrets.DOCKER_USERNAME}}
+      DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
+      RENDER_DEPLOY_HOOK: ${{secrets.RENDER_DEPLOY_HOOK}}
 
-        steps:
-            - name: Checkout Repository
-              uses: actions/checkout@v4
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-            - name: Setup Node.js
-              uses: actions/setup-node@v4
-              with:
-                  node-version: "24"
-                  cache: "npm"
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
 
-            - name: Install Dependencies
-              run: npm ci
+      - name: Install Dependencies
+        run: npm ci
 
-            - name: Run Unit Tests
-              run: npm run test
+      - name: Run Unit Tests
+        run: npm run test
 
-            - name: Build and Push Docker Image
-              run: |
-                  echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-                  docker build -t $DOCKER_USERNAME/tc-blogging-backend:latest .
-                  docker push $DOCKER_USERNAME/tc-blogging-backend:latest
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
 
-            - name: Run Deploy Hook
-              run: curl -X POST $RENDER_DEPLOY_HOOK
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ env.DOCKER_USERNAME }}
+          password: ${{ env.DOCKER_PASSWORD }}
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: true
+          tags: ${{ env.DOCKER_USERNAME }}/tc-blogging-backend:latest
+
+      - name: Run Deploy Hook
+        run: curl -X POST $RENDER_DEPLOY_HOOK
