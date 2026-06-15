@@ -15,12 +15,3 @@ export const appDataSource = new DataSource({
   migrations: [CreateTables1779748545908],
   logging: env.NODE_ENV === "development",
 });
-
-appDataSource
-  .initialize()
-  .then(() => {
-    console.log("Databae with typeorm connected");
-  })
-  .catch((error) => {
-    console.error("Error connection ");
-  });

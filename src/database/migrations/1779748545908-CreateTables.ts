@@ -69,7 +69,8 @@ export class CreateTables1779748545908 implements MigrationInterface {
       created_at,
       is_active
     )
-    VALUES (
+    VALUES
+    (
       'admin',
       'Administrador',
       'teste@teste.com',
@@ -77,6 +78,15 @@ export class CreateTables1779748545908 implements MigrationInterface {
       'admin',
       NOW(),
       TRUE
+    ),
+    (
+      'inative_user',
+      'Inative user',
+      'teste@teste2.com',
+      '${hashedPassword}',
+      'inative_user',
+      NOW(),
+      FALSE
     );
   `);
   }

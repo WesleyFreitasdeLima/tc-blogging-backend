@@ -25,7 +25,7 @@ export function verifyAuth(
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     throw new AppAuthNegate("Missing or invalid authorization header");
   }
-  console.log(authHeader);
+
   const token = authHeader.split(" ")[1] as string;
 
   try {

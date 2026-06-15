@@ -20,7 +20,11 @@ class AuthService {
       throw new AppRegraNegocio("Login or Password invalid.");
     }
 
-    const doestPassword = await compare(password, user.password);
+    if (user.isActive == false) {
+      throw new AppRegraNegocio("Account inactive. Please contact your administrator.")
+    }
+
+    const doestPassword = await compare(password ?? '', user.password);
 
     if (!doestPassword) {
       throw new AppRegraNegocio("Login or Password invalid.");
