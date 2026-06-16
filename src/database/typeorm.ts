@@ -14,4 +14,5 @@ export const appDataSource = new DataSource({
   entities: [Post, User],
   migrations: [CreateTables1779748545908],
   logging: env.NODE_ENV === "development",
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
 });
