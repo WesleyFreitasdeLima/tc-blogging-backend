@@ -1,6 +1,7 @@
 import { hash } from "bcryptjs";
 import type { MigrationInterface } from "typeorm";
 import type { QueryRunner } from "typeorm/browser";
+import { env } from "../../env/index.js";
 
 export class CreateTables1779748545908 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -57,7 +58,7 @@ export class CreateTables1779748545908 implements MigrationInterface {
       );
     `);
 
-    const hashedPassword = await hash("123456", 10);
+    const hashedPassword = await hash(env.ADMIN_USER_PASSWORD, 10);
 
     await queryRunner.query(`
     INSERT INTO users (
@@ -69,11 +70,10 @@ export class CreateTables1779748545908 implements MigrationInterface {
       created_at,
       is_active
     )
-    VALUES
-    (
-      'admin',
-      'Administrador',
-      'teste@teste.com',
+    VALUES (
+      '${env.ADMIN_USER_USERNAME}',
+      '${env.ADMIN_USER_NAME}',
+      '${env.ADMIN_USER_EMAIL}',
       '${hashedPassword}',
       'admin',
       NOW(),

@@ -16,6 +16,11 @@ const envSchema = z.object({
   DB_PORT: z.coerce.number(),
 
   JWT_SECRET: z.string(),
+
+  ADMIN_USER_NAME: z.string().default("Administrador"),
+  ADMIN_USER_USERNAME: z.string().default("admin"),
+  ADMIN_USER_EMAIL: z.string().email().default("teste@teste.com"),
+  ADMIN_USER_PASSWORD: z.string().default("123456"),
 });
 
 const _env = envSchema.safeParse(process.env);
