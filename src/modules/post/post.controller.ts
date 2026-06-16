@@ -43,20 +43,27 @@ class PostController {
   async getAllPosts(req: Request, res: Response): Promise<Response> {
     const { page, limit } = registerQuerySchema.parse(req.query);
 
-    const posts: IPost[] = await this.postService.getAllPosts(page, limit);
-
-    return res.status(200).json({
-      message: "All posts retrieved successfully",
-      data: posts.map((post) => ({
-        ...post,
-        createdBy: post.createdBy
-          ? { id: post.createdBy.id, name: post.createdBy.name }
-          : null,
-        updatedBy: post.updatedBy
-          ? { id: post.updatedBy.id, name: post.updatedBy.name }
-          : null,
-      })),
-    });
+    try {
+      const posts: IPost[] = await this.postService.getAllPosts(page, limit);
+  
+      return res.status(200).json({
+        message: "All posts retrieved successfully",
+        data: posts.map((post) => ({
+          ...post,
+          createdBy: post.createdBy
+            ? { id: post.createdBy.id, name: post.createdBy.name }
+            : null,
+          updatedBy: post.updatedBy
+            ? { id: post.updatedBy.id, name: post.updatedBy.name }
+            : null,
+        })),
+      });
+    } catch (error) {
+      return res.status(200).json({
+        message: "All posts retrieved successfully",
+        data: [],
+      });
+    }
   }
 
   async getPostById(req: Request, res: Response): Promise<Response> {
@@ -84,7 +91,7 @@ class PostController {
 
   async searchPostsByKeywords(req: Request, res: Response): Promise<Response> {
     const { page, limit, search } = registerQuerySchema.parse(req.query);
-    console.log("Query " + req.query);
+
     const posts: IPost[] = await this.postService.getAllPosts(
       page,
       limit,

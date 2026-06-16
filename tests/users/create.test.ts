@@ -1,29 +1,39 @@
-import { beforeAll, describe, it, expect } from "@jest/globals";
+import { beforeAll, describe, it, expect, beforeEach } from "@jest/globals";
 import request from "supertest";
 
 import app from "../../src/app";
+import { UserFactory } from "../_factories/user.factory";
+import { UserRoleEnum } from "../../src/enum/user-role.enum";
+import { randomUUID } from "crypto";
 
 describe("POST /api/users", () => {
   let adminToken: string;
 
-  beforeAll(async () => {
+  beforeEach(async () => {
+    const admin = await UserFactory.create({ role: UserRoleEnum.ADMIN });
+
     const adminLogin = await request(app)
       .post('/api/auth/login')
-      .send({ login: 'admin', password: '123456' });
+      .send({ login: admin.username, password: '123456' });
 
     adminToken = adminLogin.body.data.accessToken;
   });
 
   it('should create a user successfully', async () => {
+    const randomUser = {
+      username: `user-${randomUUID()}`,
+      email: `user-${randomUUID()}@example.com`
+    }
+
     const response = await request(app)
       .post('/api/users')
       .set('Authorization', `Bearer ${adminToken}`)
       .send({
         name: 'John Doe',
-        username: 'johndoe',
-        email: 'john@example.com',
+        username: randomUser.username,
+        email: randomUser.email,
         password: '123456',
-        role: 'teacher',
+        role: UserRoleEnum.TEACHER,
       });
 
     expect(response.status).toBe(201);
@@ -33,9 +43,9 @@ describe("POST /api/users", () => {
       data: {
         id: expect.any(Number),
         name: 'John Doe',
-        username: 'johndoe',
-        email: 'john@example.com',
-        role: 'user',
+        username: randomUser.username,
+        email: randomUser.email,
+        role: UserRoleEnum.TEACHER,
         createdAt: expect.any(String),
         isActive: true
       },
@@ -43,58 +53,40 @@ describe("POST /api/users", () => {
   });
 
   it('should return 400 when username already exists', async () => {
+    const teacher = await UserFactory.create({ role: UserRoleEnum.TEACHER });
+
     const response = await request(app)
       .post('/api/users')
       .set('Authorization', `Bearer ${adminToken}`)
       .send({
-        name: 'Admin',
-        username: 'admin',
-        email: 'new@email.com',
+        name: 'New teacher',
+        username: teacher.username,
+        email: 'new-teacher@email.com',
         password: '123456',
-        role: 'teacher',
+        role: UserRoleEnum.TEACHER,
       });
 
     expect(response.status).toBe(400);
 
-    expect(response.body).toMatchObject({
-      "message": "Username or email already exists."
-    })
+    expect(response.body).toMatchObject({ message: "Username or email already exists." })
   });
 
   it('should return 400 when email already exists', async () => {
+    const teacher = await UserFactory.create({ role: UserRoleEnum.TEACHER });
+
     const response = await request(app)
       .post('/api/users')
       .set('Authorization', `Bearer ${adminToken}`)
       .send({
-        name: 'Admin',
-        username: 'admin',
-        email: 'john@example.com',
+        name: 'New teacher',
+        username: randomUUID(),
+        email: teacher.email,
         password: '123456',
-        role: 'teacher',
+        role: UserRoleEnum.TEACHER,
       });
 
     expect(response.status).toBe(400);
 
-    expect(response.body).toMatchObject({
-      "message": "Username or email already exists."
-    })
-  });
-
-  it('should return users with the expected structure', async () => {
-    const response = await request(app)
-      .get('/api/users')
-      .set('Authorization', `Bearer ${adminToken}`);
-
-    expect(response.status).toBe(200);
-
-    expect(response.body.data[0]).toMatchObject({
-      id: expect.any(Number),
-      name: expect.any(String),
-      username: expect.any(String),
-      email: expect.any(String),
-      role: expect.any(String),
-      createdAt: expect.any(String),
-      isActive: expect.any(Boolean),
-    });
+    expect(response.body).toMatchObject({ message: "Username or email already exists." })
   });
 })

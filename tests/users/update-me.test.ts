@@ -3,13 +3,18 @@ import request from "supertest";
 
 import app from "../../src/app";
 
+import { UserFactory } from "../_factories/user.factory";
+import { UserRoleEnum } from "../../src/enum/user-role.enum";
+
 describe("PUT /api/users/me", () => {
   let userToken: string;
 
   beforeAll(async () => {
+    const user = await UserFactory.create({ role: UserRoleEnum.USER });
+
     const userLogin = await request(app)
       .post('/api/auth/login')
-      .send({ login: 'inative_user', password: '123456' });
+      .send({ login: user.username, password: '123456' });
 
     userToken = userLogin.body.data.accessToken;
   });

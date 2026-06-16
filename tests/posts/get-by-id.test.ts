@@ -1,11 +1,23 @@
-import { describe, expect, it } from '@jest/globals';
+import { beforeEach, describe, expect, it } from '@jest/globals';
 import request from "supertest";
 
 import app from "../../src/app";
+import { UserFactory } from '../_factories/user.factory';
+import { UserRoleEnum } from '../../src/enum/user-role.enum';
+import { PostFactory } from '../_factories/post.factory';
 
 describe("GET /api/posts/:id", () => {
+  let teacherId: number;
+
+  beforeEach(async () => {
+    const teacher = await UserFactory.create({ role: UserRoleEnum.TEACHER });
+    teacherId = teacher.id!
+  });
+
   it('should return a post with the expected structure', async () => {
-    const response = await request(app).get('/api/posts/99');
+    const post = await PostFactory.create(teacherId, { title: 'Introduction to JavaScript' });
+
+    const response = await request(app).get(`/api/posts/${post.id}`);
 
     expect(response.status).toBe(200);
 

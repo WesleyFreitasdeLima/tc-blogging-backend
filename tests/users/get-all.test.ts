@@ -3,13 +3,18 @@ import request from "supertest";
 
 import app from "../../src/app";
 
+import { UserFactory } from "../_factories/user.factory";
+import { UserRoleEnum } from "../../src/enum/user-role.enum";
+
 describe("GET /api/users", () => {
   let adminToken: string;
 
   beforeAll(async () => {
+    const admin = await UserFactory.create({ role: UserRoleEnum.ADMIN });
+
     const adminLogin = await request(app)
       .post('/api/auth/login')
-      .send({ login: 'admin', password: '123456' });
+      .send({ login: admin.username, password: '123456' });
 
     adminToken = adminLogin.body.data.accessToken;
   });

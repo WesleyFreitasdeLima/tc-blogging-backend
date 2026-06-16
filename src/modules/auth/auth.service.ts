@@ -14,6 +14,10 @@ class AuthService {
     login: string,
     password: string,
   ): Promise<{ accessToken: string } | null> {
+    if (!login || !password) {
+      throw new AppRegraNegocio("Login or Password invalid.");
+    }
+
     const user: IUser | null = await this.userService.getUserByLogin(login);
 
     if (!user) {
