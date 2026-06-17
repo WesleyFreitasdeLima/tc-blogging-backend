@@ -10,7 +10,7 @@ describe("PUT /api/users/me", () => {
   let userToken: string;
 
   beforeAll(async () => {
-    const user = await UserFactory.create({ role: UserRoleEnum.USER });
+    const user = await UserFactory.create({ role: UserRoleEnum.TEACHER });
 
     const userLogin = await request(app)
       .post('/api/auth/login')

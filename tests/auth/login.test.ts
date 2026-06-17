@@ -11,8 +11,8 @@ describe('POST /api/auth/login', () => {
   let inativeUser: { password: string; username: string };
 
   beforeEach(async () => {
-    const newUser = await UserFactory.create({ role: UserRoleEnum.USER });
-    const newInativeUser = await UserFactory.create({ role: UserRoleEnum.USER, isActive: false });
+    const newUser = await UserFactory.create({ role: UserRoleEnum.TEACHER });
+    const newInativeUser = await UserFactory.create({ role: UserRoleEnum.TEACHER, isActive: false });
 
     user = { username: newUser.username, password: '123456' };
     inativeUser = { username: newInativeUser.username, password: '123456' }

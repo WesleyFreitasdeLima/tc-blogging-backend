@@ -30,7 +30,11 @@ const idParamschema = z.object({
 });
 
 const registerQuerySchema = z.object({
-  page: z.coerce.number().default(1),
+  page: z.coerce
+    .number()
+    .int()
+    .transform((page) => Math.max(1, page))
+    .default(1),
   limit: z.coerce.number().default(10),
   search: z.string().optional(),
 });
@@ -43,27 +47,20 @@ class PostController {
   async getAllPosts(req: Request, res: Response): Promise<Response> {
     const { page, limit } = registerQuerySchema.parse(req.query);
 
-    try {
-      const posts: IPost[] = await this.postService.getAllPosts(page, limit);
-  
-      return res.status(200).json({
-        message: "All posts retrieved successfully",
-        data: posts.map((post) => ({
-          ...post,
-          createdBy: post.createdBy
-            ? { id: post.createdBy.id, name: post.createdBy.name }
-            : null,
-          updatedBy: post.updatedBy
-            ? { id: post.updatedBy.id, name: post.updatedBy.name }
-            : null,
-        })),
-      });
-    } catch (error) {
-      return res.status(200).json({
-        message: "All posts retrieved successfully",
-        data: [],
-      });
-    }
+    const posts: IPost[] = await this.postService.getAllPosts(page, limit);
+
+    return res.status(200).json({
+      message: "All posts retrieved successfully",
+      data: posts.map((post) => ({
+        ...post,
+        createdBy: post.createdBy
+          ? { id: post.createdBy.id, name: post.createdBy.name }
+          : null,
+        updatedBy: post.updatedBy
+          ? { id: post.updatedBy.id, name: post.updatedBy.name }
+          : null,
+      })),
+    });
   }
 
   async getPostById(req: Request, res: Response): Promise<Response> {

@@ -41,10 +41,35 @@ describe("GET /api/posts/", () => {
     expect(response.body.data).toHaveLength(1);
   });
 
-  it('should return 200 when page is invalid', async () => {
-    const response = await request(app)
-      .get('/api/posts?page=0&limit=10');
+  it('should return 400 when page is invalid', async () => {
+    const response = await request(app).get('/api/posts?page=aaaa&limit=10');
 
-    expect(response.status).toBe(200);
+    expect(response.status).toBe(400);
+
+    expect(response.body).toMatchObject({
+      message: "Validation error",
+      errors: [
+        {
+          field: "page",
+          message: "Invalid input: expected number, received NaN"
+        }
+      ]
+    });
+  });
+
+  it('should return 400 when limit is invalid', async () => {
+    const response = await request(app).get('/api/posts?page=1&limit=aaaa');
+
+    expect(response.status).toBe(400);
+
+    expect(response.body).toMatchObject({
+      message: "Validation error",
+      errors: [
+        {
+          field: "limit",
+          message: "Invalid input: expected number, received NaN"
+        }
+      ]
+    });
   });
 })

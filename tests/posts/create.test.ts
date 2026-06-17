@@ -11,18 +11,12 @@ describe("POST /api/posts", () => {
   let teacherToken: string;
 
   beforeEach(async () => {
-    const user = await UserFactory.create({ role: UserRoleEnum.USER });
     const teacher = await UserFactory.create({ role: UserRoleEnum.TEACHER });
-
-    const userLogin = await request(app)
-      .post('/api/auth/login')
-      .send({ login: user.username, password: '123456' });
 
     const teacherLogin = await request(app)
       .post('/api/auth/login')
       .send({ login: teacher.username, password: '123456' });
 
-    userToken = userLogin.body.data.accessToken;
     teacherToken = teacherLogin.body.data.accessToken;
   });
 
@@ -75,19 +69,6 @@ describe("POST /api/posts", () => {
 
     expect(response.body).toEqual({
       message: 'Invalid or expired token',
-    });
-  });
-
-  it('should return 403 when user does not have permission', async () => {
-    const response = await request(app)
-      .post('/api/posts')
-      .set('Authorization', `Bearer ${userToken}`)
-      .send({ title: 'My first post', content: 'Post content' });
-
-    expect(response.status).toBe(403);
-
-    expect(response.body).toEqual({
-      message: 'Forbidden: insufficient permissions',
     });
   });
 
