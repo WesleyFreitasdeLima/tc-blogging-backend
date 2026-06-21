@@ -18,6 +18,8 @@ A aplicação adota uma arquitetura em camadas, distribuindo as responsabilidade
 - **Bcryptjs**: Para hashing de senhas.
 - **Docker e Docker Compose**: Para containerização da aplicação e do banco de dados.
 - **GitHub Actions**: Automação da pipeline de CI/CD (Testes, Build e Deploy).
+- **Jest**: Framework de testes utilizado para testes unitários e de integração.
+- **Supertest**: Ferramenta para simulação de requisições HTTP e validação dos endpoints da API durante os testes de integração.
 - **Docker Hub**: Registro para armazenamento e versionamento das imagens Docker.
 - **Render**: Plataforma de nuvem utilizada para a hospedagem da aplicação e banco de dados no ambiente de produção.
 
@@ -52,6 +54,24 @@ src/
 │   └── express.d.ts
 ├── app.ts
 └── server.ts
+```
+
+### Estrutura de Testes
+
+A estrutura de testes do projeto é organizada por módulos da aplicação, facilitando a manutenção, reutilização de dados de teste e cobertura dos principais fluxos da API.
+
+```bash
+tests/
+├── _factories/
+│   ├── post.factory.ts
+│   └── user.factory.ts
+├── _helpers/
+├── auth/
+│   ├── login.test.ts
+├── posts/
+├── users/
+├── setup.ts
+├── cleanup.ts
 ```
 
 ## Configuração de Ambiente
@@ -124,6 +144,8 @@ docker compose up --build
 - `npm run build`: Compila o código TypeScript para JavaScript no diretório `dist/`.
 - `npm run start:prod`: Executa as migrações do banco de dados e inicia a aplicação a partir do código compilado (para produção).
 - `npm run migration:run`: Executa as migrações do banco de dados.
+- `npm run test`: Executa os testes unitários e de integração.
+- `npm run test:coverage`: Gera o relatório de cobertura dos testes.
 
 ## Uso da API (Endpoints)
 

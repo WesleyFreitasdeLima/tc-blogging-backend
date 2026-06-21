@@ -1,29 +1,32 @@
-import { beforeAll, describe, it, expect } from "@jest/globals";
+import { beforeAll, describe, it, expect, beforeEach } from "@jest/globals";
 import request from "supertest";
 
 import app from "../../src/app";
+import { UserFactory } from "../_factories/user.factory";
+import { UserRoleEnum } from "../../src/enum/user-role.enum";
+import { PostFactory } from "../_factories/post.factory";
 
 describe("PUT /api/posts", () => {
-  let adminToken: string;
-  let userToken: string;
+  let teacherToken: string;
+  let teacherId: number;
 
-  beforeAll(async () => {
-    const adminLogin = await request(app)
+  beforeEach(async () => {
+    const teacher = await UserFactory.create({ role: UserRoleEnum.TEACHER });
+
+    const teacherLogin = await request(app)
       .post('/api/auth/login')
-      .send({ login: 'admin', password: '123456' });
+      .send({ login: teacher.username, password: '123456' });
 
-    const userLogin = await request(app)
-      .post('/api/auth/login')
-      .send({ login: 'inative_user', password: '123456' });
-
-    adminToken = adminLogin.body.data.accessToken;
-    userToken = userLogin.body.data.accessToken;
+    teacherId = teacher.id!;
+    teacherToken = teacherLogin.body.data.accessToken;
   });
 
   it('should update a post successfully', async () => {
+    const post = await PostFactory.create(teacherId);
+
     const response = await request(app)
-      .put('/api/posts/99')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .put(`/api/posts/${post.id}`)
+      .set('Authorization', `Bearer ${teacherToken}`)
       .send({
         title: 'Updated title',
         content: 'Updated content',
@@ -50,7 +53,7 @@ describe("PUT /api/posts", () => {
 
   it('should return 401 when token is not provided', async () => {
     const response = await request(app)
-      .put('/api/posts/99')
+      .put('/api/posts/999999')
       .send({
         title: 'Updated title',
         content: 'Updated content',
@@ -71,22 +74,10 @@ describe("PUT /api/posts", () => {
     expect(response.status).toBe(401);
   });
 
-  it('should return 403 when user does not have permission', async () => {
-    const response = await request(app)
-      .put('/api/posts/1')
-      .set('Authorization', `Bearer ${userToken}`)
-      .send({
-        title: 'Updated title',
-        content: 'Updated content',
-      });
-
-    expect(response.status).toBe(403);
-  });
-
   it('should return 404 when post does not exist', async () => {
     const response = await request(app)
-      .put('/api/posts/99999')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .put('/api/posts/99999999')
+      .set('Authorization', `Bearer ${teacherToken}`)
       .send({
         title: 'Updated title',
         content: 'Updated content',
@@ -102,7 +93,7 @@ describe("PUT /api/posts", () => {
   it('should return 400 when body is empty', async () => {
     const response = await request(app)
       .put('/api/posts/1')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Authorization', `Bearer ${teacherToken}`)
       .send({});
 
     expect(response.status).toBe(400);

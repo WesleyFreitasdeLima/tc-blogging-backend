@@ -30,7 +30,11 @@ const idParamschema = z.object({
 });
 
 const registerQuerySchema = z.object({
-  page: z.coerce.number().default(1),
+  page: z.coerce
+    .number()
+    .int()
+    .transform((page) => Math.max(1, page))
+    .default(1),
   limit: z.coerce.number().default(10),
   search: z.string().optional(),
 });
@@ -84,7 +88,7 @@ class PostController {
 
   async searchPostsByKeywords(req: Request, res: Response): Promise<Response> {
     const { page, limit, search } = registerQuerySchema.parse(req.query);
-    console.log("Query " + req.query);
+
     const posts: IPost[] = await this.postService.getAllPosts(
       page,
       limit,

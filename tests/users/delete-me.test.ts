@@ -2,22 +2,20 @@ import { describe, it, expect, beforeAll } from "@jest/globals"
 import request from "supertest";
 
 import app from "../../src/app";
+import { UserFactory } from "../_factories/user.factory";
+import { UserRoleEnum } from "../../src/enum/user-role.enum";
 
 describe("DELETE /api/users/me", () => {
   let userToken: string;
-  let adminToken: string;
 
   beforeAll(async () => {
+    const user = await UserFactory.create({ role: UserRoleEnum.TEACHER });
+
     const userLogin = await request(app)
       .post('/api/auth/login')
-      .send({ login: 'inative_user', password: '123456' });
-
-    const adminLogin = await request(app)
-      .post('/api/auth/login')
-      .send({ login: 'admin', password: '123456' });
+      .send({ login: user.username, password: '123456' });
 
     userToken = userLogin.body.data.accessToken;
-    adminToken = userLogin.body.data.accessToken;
   });
 
   it('should delete authenticated user account', async () => {
@@ -35,11 +33,11 @@ describe("DELETE /api/users/me", () => {
   it('should not allow access after account deletion', async () => {
     await request(app)
       .delete('/api/users/me')
-      .set('Authorization', `Bearer ${adminToken}`);
+      .set('Authorization', `Bearer ${userToken}`);
 
     const response = await request(app)
       .get('/api/users/me')
-      .set('Authorization', `Bearer ${adminToken}`);
+      .set('Authorization', `Bearer ${userToken}`);
 
     expect(response.status).toBe(404);
   });

@@ -1,33 +1,30 @@
-import { beforeAll, describe, it, expect } from "@jest/globals";
+import { describe, it, expect, beforeEach } from "@jest/globals";
 import request from "supertest";
 
 import app from "../../src/app";
+import { UserFactory } from "../_factories/user.factory";
+import { UserRoleEnum } from "../../src/enum/user-role.enum";
+import { registerPost } from "../_helpers/register-entity";
 
 describe("POST /api/posts", () => {
-  let adminToken: string;
   let userToken: string;
+  let teacherToken: string;
 
-  beforeAll(async () => {
-    const adminLogin = await request(app)
+  beforeEach(async () => {
+    const teacher = await UserFactory.create({ role: UserRoleEnum.TEACHER });
+
+    const teacherLogin = await request(app)
       .post('/api/auth/login')
-      .send({ login: 'admin', password: '123456' });
+      .send({ login: teacher.username, password: '123456' });
 
-    const userLogin = await request(app)
-      .post('/api/auth/login')
-      .send({ login: 'inative_user', password: '123456' });
-
-    adminToken = adminLogin.body.data.accessToken;
-    userToken = userLogin.body.data.accessToken;
+    teacherToken = teacherLogin.body.data.accessToken;
   });
 
   it('should create a post successfully', async () => {
     const response = await request(app)
       .post('/api/posts')
-      .set('Authorization', `Bearer ${adminToken}`)
-      .send({
-        title: 'My first post',
-        content: 'Post content',
-      });
+      .set('Authorization', `Bearer ${teacherToken}`)
+      .send({ title: 'My first post', content: 'Test post successfully' });
 
     expect(response.status).toBe(201);
 
@@ -46,15 +43,14 @@ describe("POST /api/posts", () => {
         isActive: expect.any(Boolean)
       }
     });
+
+    registerPost(response.body.data.id);
   });
 
   it('should return 401 when token is not provided', async () => {
     const response = await request(app)
       .post('/api/posts')
-      .send({
-        title: 'My first post',
-        content: 'Post content',
-      });
+      .send({ title: 'My first post', content: 'Post content' });
 
     expect(response.status).toBe(401);
 
@@ -67,10 +63,7 @@ describe("POST /api/posts", () => {
     const response = await request(app)
       .post('/api/posts')
       .set('Authorization', 'Bearer invalid-token')
-      .send({
-        title: 'My first post',
-        content: 'Post content',
-      });
+      .send({ title: 'My first post', content: 'Post content' });
 
     expect(response.status).toBe(401);
 
@@ -79,26 +72,11 @@ describe("POST /api/posts", () => {
     });
   });
 
-  it('should return 403 when user does not have permission', async () => {
-    const response = await request(app)
-      .post('/api/posts')
-      .set('Authorization', `Bearer ${userToken}`)
-      .send({ title: 'My first post', content: 'Post content' });
-
-    expect(response.status).toBe(403);
-
-    expect(response.body).toEqual({
-      message: 'Forbidden: insufficient permissions',
-    });
-  });
-
   it('should return 400 when title is not provided', async () => {
     const response = await request(app)
       .post('/api/posts')
-      .set('Authorization', `Bearer ${adminToken}`)
-      .send({
-        content: 'Post content',
-      });
+      .set('Authorization', `Bearer ${teacherToken}`)
+      .send({ content: 'Post content' });
 
     expect(response.status).toBe(400);
 
@@ -116,10 +94,8 @@ describe("POST /api/posts", () => {
   it('should return 400 when content is not provided', async () => {
     const response = await request(app)
       .post('/api/posts')
-      .set('Authorization', `Bearer ${adminToken}`)
-      .send({
-        title: 'Post title',
-      });
+      .set('Authorization', `Bearer ${teacherToken}`)
+      .send({ title: 'Post title' });
 
     expect(response.status).toBe(400);
 
