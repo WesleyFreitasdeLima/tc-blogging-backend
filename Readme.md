@@ -208,13 +208,22 @@ A URL base para acesso local é `http://localhost:3000`.
 
 ## CI/CD (Integração e Entrega Contínua)
 
-O processo de CI/CD deste projeto utiliza o GitHub Actions e é composto pelas seguintes etapas:
+O pipeline de CI/CD deste projeto é orquestrado via **GitHub Actions** e foi estruturado para garantir isolamento e segurança em cada etapa. O fluxo é dividido em três *jobs* sequenciais:
 
-1. **Checkout**: Clona o repositório.
-2. **Setup**: Configura o ambiente Node.js e instala as dependências.
-3. **Test**: Executa os testes automatizados.
-4. **Build & Push**: Constrói a imagem Docker da aplicação e a envia para o Docker Hub (executado apenas na branch master).
-5. **Deploy**: Aciona o webhook do Render para atualizar a aplicação com a imagem mais recente (executado apenas na branch master).
+1. **Build**
+* Clona o repositório e configura o ambiente Node.js.
+* Instala as dependências de forma limpa (`npm ci`).
+* Compila o código TypeScript e salva o artefato gerado (`dist`) para a próxima etapa.
+
+2. **Test** (Executado após o Build)
+* Sobe um banco de dados PostgreSQL efêmero e isolado na própria pipeline.
+* Roda as *migrations* para preparar o esquema do banco de testes.
+* Executa os testes automatizados, garantindo a validação do código sem qualquer risco ou alteração no banco de produção.
+
+3. **Deploy** (Restrito à branch `master` e executado após os testes)
+* Realiza a autenticação no registro de containers.
+* Constrói a imagem Docker da aplicação e faz o push para o **Docker Hub**.
+* Aciona o *webhook* da plataforma **Render**, iniciando o deploy automático da nova versão.
 
 ## Relato de Experiências e Desafios
 
