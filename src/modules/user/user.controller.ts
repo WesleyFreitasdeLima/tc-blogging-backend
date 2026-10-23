@@ -16,9 +16,12 @@ const createUserSchema = z.object({
   role: z.enum(UserRoleEnum),
 });
 
-const updateUserSchema = createUserSchema
-  .extend({
-    isActive: z.boolean(),
+const updateUserSchema = z
+  .object({
+    name: z.string(),
+    username: z.string(),
+    email: z.string().email(),
+    password: z.string().optional(),
   })
   .partial()
   .refine((data) => Object.keys(data).length > 0, {
