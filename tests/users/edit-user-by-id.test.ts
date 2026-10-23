@@ -75,4 +75,29 @@ describe("GET and PUT /api/users/:id", () => {
 
     expect(response.status).toBe(403);
   });
+
+  it("allows an admin to delete a teacher", async () => {
+    const response = await request(app)
+      .delete(`/api/users/${teacherId}`)
+      .set("Authorization", `Bearer ${adminToken}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ message: "Teacher deleted successfully" });
+  });
+
+  it("does not allow deleting an admin through the teacher endpoint", async () => {
+    const response = await request(app)
+      .delete(`/api/users/${adminId}`)
+      .set("Authorization", `Bearer ${adminToken}`);
+
+    expect(response.status).toBe(404);
+  });
+
+  it("does not allow a teacher to delete another user", async () => {
+    const response = await request(app)
+      .delete(`/api/users/${teacherId}`)
+      .set("Authorization", `Bearer ${teacherToken}`);
+
+    expect(response.status).toBe(403);
+  });
 });

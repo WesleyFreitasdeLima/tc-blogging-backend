@@ -35,5 +35,10 @@ routes.put(
   verifyRole(UserRoleEnum.ADMIN),
   userController.editUserById.bind(userController),
 );
+routes.delete(
+  "/:id",
+  verifyRole(UserRoleEnum.ADMIN),
+  userController.deleteUserById.bind(userController),
+);
 
 export default routes;

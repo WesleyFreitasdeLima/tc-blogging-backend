@@ -95,6 +95,31 @@ class UserController {
     }
   }
 
+  async deleteUserById(req: Request, res: Response): Promise<Response> {
+    const id = z.coerce.number().int().positive().parse(req.params.id);
+    const user = await this.userService.getUserById(id);
+
+    if (!user || user.role !== UserRoleEnum.TEACHER) {
+      throw new AppNotFound("Teacher");
+    }
+
+    try {
+      await this.userService.deleteUserById(id);
+
+      return res.status(200).json({
+        message: "Teacher deleted successfully",
+      });
+    } catch (error) {
+      if (
+        error instanceof QueryFailedError &&
+        error.driverError?.code === "23503"
+      ) {
+        throw new AppRegraNegocio("Teacher with related posts.");
+      }
+      throw error;
+    }
+  }
+
   async getAllUsers(req: Request, res: Response): Promise<Response> {
     const registerQuerySchema = z.object({
       page: z.coerce.number().default(1),
