@@ -1,12 +1,12 @@
 import type { Request, Response } from "express";
-import type UserService from "./user.service.js";
-import type { IUser } from "./interfaces/user.interface.js";
+import { QueryFailedError } from "typeorm";
 import z from "zod";
 import { UserRoleEnum } from "../../enum/user-role.enum.js";
-import { AppNotFound } from "../../erros/not-found.js";
-import { QueryFailedError } from "typeorm";
-import { AppRegraNegocio } from "../../erros/regra-negocio.js";
 import { AppAuthNegate } from "../../erros/autth.js";
+import { AppNotFound } from "../../erros/not-found.js";
+import { AppRegraNegocio } from "../../erros/regra-negocio.js";
+import type { IUser } from "./interfaces/user.interface.js";
+import type UserService from "./user.service.js";
 
 const createUserSchema = z.object({
   name: z.string(),
@@ -29,8 +29,71 @@ const updateUserSchema = createUserSchema
       Object.entries(data).filter(([_, value]) => value !== undefined),
     ),
   );
+
+const updateTeacherSchema = z
+  .object({
+    name: z.string(),
+    username: z.string(),
+    email: z.string().email(),
+    password: z.string().optional(),
+    isActive: z.boolean(),
+  })
+  .partial()
+  .refine((data) => Object.keys(data).length > 0, {
+    message: "Informe ao menos um campo para atualização.",
+  })
+  .transform((data) =>
+    Object.fromEntries(
+      Object.entries(data).filter(([_, value]) => value !== undefined),
+    ),
+  );
+
 class UserController {
   constructor(private readonly userService: UserService) {}
+
+  async getUserById(req: Request, res: Response): Promise<Response> {
+    const id = z.coerce.number().int().positive().parse(req.params.id);
+    const user = await this.userService.getUserById(id);
+
+    if (!user || user.role !== UserRoleEnum.TEACHER) {
+      throw new AppNotFound("Teacher");
+    }
+
+    const { password, ...data } = user;
+
+    return res.status(200).json({
+      message: "Teacher retrieved successfully",
+      data,
+    });
+  }
+
+  async editUserById(req: Request, res: Response): Promise<Response> {
+    const id = z.coerce.number().int().positive().parse(req.params.id);
+    const data = updateTeacherSchema.parse(req.body);
+    const existingUser = await this.userService.getUserById(id);
+
+    if (!existingUser || existingUser.role !== UserRoleEnum.TEACHER) {
+      throw new AppNotFound("Teacher");
+    }
+
+    try {
+      const updatedUser = await this.userService.editUserById(id, data);
+      const { password, ...userData } = updatedUser;
+
+      return res.status(200).json({
+        message: "Teacher updated successfully",
+        data: userData,
+      });
+    } catch (error) {
+      if (
+        error instanceof QueryFailedError &&
+        error.driverError?.code === "23505"
+      ) {
+        throw new AppRegraNegocio("Username or email already exists.");
+      }
+      throw error;
+    }
+  }
 
   async getAllUsers(req: Request, res: Response): Promise<Response> {
     const registerQuerySchema = z.object({
