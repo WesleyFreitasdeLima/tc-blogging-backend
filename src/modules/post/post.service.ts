@@ -13,6 +13,7 @@ class PostService {
   }
 
   async getPostById(id: number): Promise<IPost | null> {
+    
     return await this.postRepository.findById(id);
   }
 

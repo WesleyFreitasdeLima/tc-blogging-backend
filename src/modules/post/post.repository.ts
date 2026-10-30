@@ -18,20 +18,18 @@ class PostRepository implements IPostRepository {
     search: string | undefined = undefined,
   ): Promise<IPost[]> {
     const query = this.postRepository
-      .createQueryBuilder("Post")
-      .leftJoinAndSelect("Post.createdBy", "createdBy")
-      .leftJoinAndSelect("Post.updatedBy", "updatedBy");
+      .createQueryBuilder("post")
+      .leftJoinAndSelect("post.createdBy", "postCreatedBy")
+      .leftJoinAndSelect("post.updatedBy", "postUpdatedBy");
 
     if (search) {
       query.andWhere(
         `
-        Post.title ILIKE :search
-        OR Post.content ILIKE :search
-        OR createdBy.name ILIKE :search
-      `,
-        {
-          search: `%${search}%`,
-        },
+      post.title ILIKE :search
+      OR post.content ILIKE :search
+      OR postCreatedBy.name ILIKE :search
+    `,
+        { search: `%${search}%` },
       );
     }
 
@@ -44,7 +42,13 @@ class PostRepository implements IPostRepository {
   async findById(id: number): Promise<IPost | null> {
     return await this.postRepository.findOne({
       where: { id: id },
-      relations: ["createdBy", "updatedBy"],
+      relations: [
+        "createdBy",
+        "updatedBy",
+        "coments",
+        "coments.createdBy",
+        "coments.updatedBy",
+      ],
     });
   }
 
