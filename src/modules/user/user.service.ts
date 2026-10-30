@@ -1,6 +1,7 @@
 import { hash } from "bcryptjs";
 import type { IUser } from "./interfaces/user.interface.js";
 import type UserRepository from "./user.repository.js";
+import type { UserRoleEnum } from "../../enum/user-role.enum.js";
 
 class UserService {
   constructor(private readonly userRepository: UserRepository) {}
@@ -8,9 +9,10 @@ class UserService {
   async getAllUsers(
     page: number,
     limit: number,
+    role: string | UserRoleEnum = '',
     search: string | undefined = undefined,
   ): Promise<IUser[]> {
-    return await this.userRepository.findAll(page, limit, search);
+    return await this.userRepository.findAll(page, limit, role, search);
   }
 
   async getUserById(id: number): Promise<IUser | null> {

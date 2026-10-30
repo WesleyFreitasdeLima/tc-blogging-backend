@@ -3,10 +3,12 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from "typeorm";
 import type { IPost } from "./interfaces/post.interface.js";
 import { User } from "../user/user.entity.js";
+import { Coment } from "../coment/coment.entity.js";
 
 @Entity({
   name: "post",
@@ -14,6 +16,9 @@ import { User } from "../user/user.entity.js";
 export class Post implements IPost {
   @PrimaryGeneratedColumn("increment")
   id?: number;
+
+  @OneToMany(() => Coment, (coment) => coment.post)
+  coments?: Coment[];
 
   @Column({
     name: "title",

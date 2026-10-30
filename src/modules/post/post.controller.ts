@@ -76,12 +76,25 @@ class PostController {
       message: "Post retrieved successfully",
       data: {
         ...post,
+
         createdBy: post.createdBy
-          ? { id: post.createdBy.id, name: post.createdBy.name }
+          ? {
+              id: post.createdBy.id,
+              name: post.createdBy.name,
+            }
           : null,
+
         updatedBy: post.updatedBy
-          ? { id: post.updatedBy.id, name: post.updatedBy.name }
+          ? {
+              id: post.updatedBy.id,
+              name: post.updatedBy.name,
+            }
           : null,
+
+        coments:
+          post.coments?.map((coment) => {
+            return coment;
+          }) ?? [],
       },
     });
   }
@@ -94,7 +107,6 @@ class PostController {
       limit,
       search,
     );
-
     return res.status(200).json({
       message: "Posts retrieved successfully",
       data: posts.map((post) => ({
@@ -105,6 +117,22 @@ class PostController {
         updatedBy: post.updatedBy
           ? { id: post.updatedBy.id, name: post.updatedBy.name }
           : null,
+        coments: post.coments?.map((coment) => ({
+          ...coment,
+          createdBy: coment.createdBy
+            ? {
+                id: coment.createdBy.id,
+                name: coment.createdBy.name,
+              }
+            : null,
+
+          updatedBy: coment.updatedBy
+            ? {
+                id: coment.updatedBy.id,
+                name: coment.updatedBy.name,
+              }
+            : null,
+        })),
       })),
     });
   }
