@@ -8,7 +8,7 @@ import {
 } from "typeorm";
 import type { IPost } from "./interfaces/post.interface.js";
 import { User } from "../user/user.entity.js";
-import { Coment } from "../coment/coment.entity.js";
+import type { Coment } from "../coment/coment.entity.js";
 
 @Entity({
   name: "post",
@@ -17,7 +17,7 @@ export class Post implements IPost {
   @PrimaryGeneratedColumn("increment")
   id?: number;
 
-  @OneToMany(() => Coment, (coment) => coment.post)
+  @OneToMany("Coment", (coment: any) => coment.post)
   coments?: Coment[];
 
   @Column({

@@ -7,7 +7,7 @@ import {
 } from "typeorm";
 import type { IComent } from "./interfaces/coment.interface.js";
 import { User } from "../user/user.entity.js";
-import { Post } from "../post/post.entity.js";
+import type { Post } from "../post/post.entity.js";
 
 @Entity({
   name: "coment",
@@ -22,7 +22,7 @@ export class Coment implements IComent {
   })
   content!: string;
 
-  @ManyToOne(() => Post, {
+  @ManyToOne("Post", {
     onDelete: "CASCADE",
   })
   @JoinColumn({
