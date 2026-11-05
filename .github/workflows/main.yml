@@ -57,6 +57,7 @@ jobs:
           --health-retries 5
 
     env:
+      NODE_OPTIONS: --experimental-vm-modules
       NODE_ENV: test
       JWT_SECRET: "test_secret"
       DB_PORT: 5432
@@ -122,3 +123,4 @@ jobs:
 
       - name: Run Deploy Hook
         run: curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }} # Triggers the Render platform to pull the newly pushed image and deploy
+        
