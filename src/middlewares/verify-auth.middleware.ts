@@ -38,15 +38,27 @@ export function verifyAuth(
   }
 }
 
-export function verifyRole(role: UserRoleEnum) {
+export function verifyRole(requiredRole: UserRoleEnum) {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {
       throw new AppAuthForbiden("Forbidden: insufficient permissions");
     }
-    if (req.user.role !== UserRoleEnum.ADMIN) {
-      if (req.user.role !== role) {
-        throw new AppAuthForbiden("Forbidden: insufficient permissions");
-      }
+
+    const hierarchy: Record<UserRoleEnum, number> = {
+      [UserRoleEnum.ADMIN]: 3,
+      [UserRoleEnum.TEACHER]: 2,
+      [UserRoleEnum.STUDENT]: 1,
+    };
+
+    const userLevel = hierarchy[req.user.role];
+    const requiredLevel = hierarchy[requiredRole];
+
+    if (
+      userLevel === undefined ||
+      requiredLevel === undefined ||
+      userLevel < requiredLevel
+    ) {
+      throw new AppAuthForbiden("Forbidden: insufficient permissions");
     }
 
     next();

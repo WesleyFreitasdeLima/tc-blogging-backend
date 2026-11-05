@@ -56,6 +56,41 @@ export class CreateTables1779748545908 implements MigrationInterface {
           ON DELETE SET NULL
 
       );
+      
+      CREATE TABLE coment (
+        id SERIAL PRIMARY KEY,
+
+        content TEXT NOT NULL,
+
+        post INTEGER NOT NULL,
+
+        created_at TIMESTAMP WITHOUT TIME ZONE
+          NOT NULL
+          DEFAULT CURRENT_TIMESTAMP,
+
+        created_by INTEGER NOT NULL,
+
+        updated_at TIMESTAMP WITHOUT TIME ZONE,
+
+        updated_by INTEGER,
+
+        CONSTRAINT fk_coment_post_by
+          FOREIGN KEY (post)
+          REFERENCES post(id)
+          ON DELETE CASCADE,
+
+        CONSTRAINT fk_coment_created_by
+          FOREIGN KEY (created_by)
+          REFERENCES users(id)
+          ON DELETE RESTRICT,
+
+        CONSTRAINT fk_coment_updated_by
+          FOREIGN KEY (updated_by)
+          REFERENCES users(id)
+          ON DELETE SET NULL
+
+      );
+
     `);
 
     const hashedPassword = await hash(env.ADMIN_USER_PASSWORD, 10);

@@ -51,21 +51,55 @@ const updateTeacherSchema = z
     ),
   );
 
+const registerQuerySchema = z.object({
+  page: z.coerce
+    .number()
+    .int()
+    .transform((page) => Math.max(1, page))
+    .default(1),
+  limit: z.coerce.number().default(10),
+  search: z.string().optional(),
+});
 class UserController {
   constructor(private readonly userService: UserService) {}
 
+  private checkUser(user: IUser | null): IUser {
+    if (!user || user?.role === UserRoleEnum.ADMIN) {
+      throw new AppNotFound("Registro não encontrado");
+    }
+
+    return user;
+  }
+  private getTermo(role: UserRoleEnum): string {
+    let termo = "";
+
+    switch (role) {
+      case UserRoleEnum.ADMIN:
+        termo = "admin";
+        break;
+      case UserRoleEnum.TEACHER:
+        termo = "Teacher";
+        break;
+      case UserRoleEnum.STUDENT:
+        termo = "Student";
+        break;
+
+      default:
+        break;
+    }
+
+    return termo;
+  }
   async getUserById(req: Request, res: Response): Promise<Response> {
     const id = z.coerce.number().int().positive().parse(req.params.id);
-    const user = await this.userService.getUserById(id);
+    let user = await this.userService.getUserById(id);
 
-    if (!user || user.role !== UserRoleEnum.TEACHER) {
-      throw new AppNotFound("Teacher");
-    }
+    user = this.checkUser(user);
 
     const { password, ...data } = user;
 
     return res.status(200).json({
-      message: "Teacher retrieved successfully",
+      message: `${this.getTermo(user.role)} retrieved successfully`,
       data,
     });
   }
@@ -73,18 +107,16 @@ class UserController {
   async editUserById(req: Request, res: Response): Promise<Response> {
     const id = z.coerce.number().int().positive().parse(req.params.id);
     const data = updateTeacherSchema.parse(req.body);
-    const existingUser = await this.userService.getUserById(id);
+    let existingUser = await this.userService.getUserById(id);
 
-    if (!existingUser || existingUser.role !== UserRoleEnum.TEACHER) {
-      throw new AppNotFound("Teacher");
-    }
+    existingUser = this.checkUser(existingUser);
 
     try {
       const updatedUser = await this.userService.editUserById(id, data);
       const { password, ...userData } = updatedUser;
 
       return res.status(200).json({
-        message: "Teacher updated successfully",
+        message: `${this.getTermo(existingUser.role)} updated successfully`,
         data: userData,
       });
     } catch (error) {
@@ -100,17 +132,15 @@ class UserController {
 
   async deleteUserById(req: Request, res: Response): Promise<Response> {
     const id = z.coerce.number().int().positive().parse(req.params.id);
-    const user = await this.userService.getUserById(id);
+    let user = await this.userService.getUserById(id);
 
-    if (!user || user.role !== UserRoleEnum.TEACHER) {
-      throw new AppNotFound("Teacher");
-    }
+    user = this.checkUser(user);
 
     try {
       await this.userService.deleteUserById(id);
 
       return res.status(200).json({
-        message: "Teacher deleted successfully",
+        message: `${this.getTermo(user.role)} deleted successfully`,
       });
     } catch (error) {
       if (
@@ -127,11 +157,22 @@ class UserController {
     const registerQuerySchema = z.object({
       page: z.coerce.number().default(1),
       limit: z.coerce.number().default(10),
+      role: z.coerce.string().default(""),
     });
 
-    const { page, limit } = registerQuerySchema.parse(req.query);
+    const { page, limit, role } = registerQuerySchema.parse(req.query);
 
-    const users: IUser[] = await this.userService.getAllUsers(page, limit);
+    let users: IUser[] = await this.userService.getAllUsers(page, limit, role);
+
+    if (
+      !req.user ||
+      (req.user.role !== UserRoleEnum.ADMIN &&
+        (role === "" || role !== UserRoleEnum.ADMIN))
+    ) {
+      users = users.filter((item) => {
+        return item.role != UserRoleEnum.ADMIN;
+      });
+    }
 
     return res.status(200).json({
       message: "All users retrieved successfully",

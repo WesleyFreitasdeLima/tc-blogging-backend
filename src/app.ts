@@ -8,6 +8,7 @@ import express, {
 import cors from "cors";
 import morgan from "morgan";
 import helmet from "helmet";
+import comentRoutes from "./modules/coment/coment.routes.js";
 import postRoutes from "./modules/post/post.routes.js";
 import userRoutes from "./modules/user/user.routes.js";
 import authRoutes from "./modules/auth/auth.routes.js";
@@ -20,6 +21,7 @@ app.use(cors());
 app.use(helmet());
 app.use(express.json());
 
+app.use("/api/coments", comentRoutes);
 app.use("/api/posts", postRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);

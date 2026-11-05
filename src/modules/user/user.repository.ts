@@ -4,6 +4,7 @@ import type { IUserRepository } from "./interfaces/user-repository.interface.js"
 import { User } from "./user.entity.js";
 import type { IUser } from "./interfaces/user.interface.js";
 import { AppNotFound } from "../../erros/not-found.js";
+import type { UserRoleEnum } from "../../enum/user-role.enum.js";
 
 class UserRepository implements IUserRepository {
   private repository: Repository<User>;
@@ -15,9 +16,21 @@ class UserRepository implements IUserRepository {
   async findAll(
     page: number,
     limit: number,
+    role: string | UserRoleEnum = "",
     search: string | undefined = undefined,
   ): Promise<IUser[]> {
     const query = this.repository.createQueryBuilder("User");
+
+    if (role) {
+      query.andWhere(
+        `
+        User.role = :role
+      `,
+        {
+          role: `${role.toLowerCase()}`,
+        },
+      );
+    }
 
     if (search) {
       query.andWhere(
