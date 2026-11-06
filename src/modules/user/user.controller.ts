@@ -60,8 +60,9 @@ const registerQuerySchema = z.object({
   limit: z.coerce.number().default(10),
   search: z.string().optional(),
 });
+
 class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly userService: UserService) { }
 
   private checkUser(user: IUser | null): IUser {
     if (!user || user?.role === UserRoleEnum.ADMIN) {
@@ -90,6 +91,7 @@ class UserController {
 
     return termo;
   }
+
   async getUserById(req: Request, res: Response): Promise<Response> {
     const id = z.coerce.number().int().positive().parse(req.params.id);
     let user = await this.userService.getUserById(id);
@@ -132,6 +134,12 @@ class UserController {
 
   async deleteUserById(req: Request, res: Response): Promise<Response> {
     const id = z.coerce.number().int().positive().parse(req.params.id);
+    if (req.user?.role === UserRoleEnum.TEACHER && req.user?.sub === id) {
+      return res.status(403).json({
+        message: "Forbidden: Teachers cannot delete themselves through this endpoint.",
+      });
+    }
+
     let user = await this.userService.getUserById(id);
 
     user = this.checkUser(user);
