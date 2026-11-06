@@ -5,18 +5,21 @@ import app from "../../src/app";
 import { UserRoleEnum } from "../../src/enum/user-role.enum";
 import { UserFactory } from "../_factories/user.factory";
 
-describe("GET and PUT /api/users/:id", () => {
+describe("GET, PUT and DELETE /api/users/:id", () => {
   let adminToken: string;
   let teacherId: number;
+  let targetTeacherId: number;
   let adminId: number;
   let teacherToken: string;
 
   beforeEach(async () => {
     const admin = await UserFactory.create({ role: UserRoleEnum.ADMIN });
     const teacher = await UserFactory.create({ role: UserRoleEnum.TEACHER });
+    const targetTeacher = await UserFactory.create({ role: UserRoleEnum.TEACHER });
 
     adminId = admin.id!;
     teacherId = teacher.id!;
+    targetTeacherId = targetTeacher.id!;
 
     const [adminLogin, teacherLogin] = await Promise.all([
       request(app)
@@ -68,17 +71,22 @@ describe("GET and PUT /api/users/:id", () => {
     expect(response.status).toBe(404);
   });
 
-  it("does not allow a teacher to retrieve another user", async () => {
+  it("allows a teacher to retrieve a user", async () => {
     const response = await request(app)
-      .get(`/api/users/${teacherId}`)
+      .get(`/api/users/${targetTeacherId}`)
       .set("Authorization", `Bearer ${teacherToken}`);
 
-    expect(response.status).toBe(403);
+    expect(response.status).toBe(200);
+    expect(response.body.data).toMatchObject({
+      id: targetTeacherId,
+      role: UserRoleEnum.TEACHER,
+    });
+    expect(response.body.data.password).toBeUndefined();
   });
 
   it("allows an admin to delete a teacher", async () => {
     const response = await request(app)
-      .delete(`/api/users/${teacherId}`)
+      .delete(`/api/users/${targetTeacherId}`) // Admin deletando o targetTeacher
       .set("Authorization", `Bearer ${adminToken}`);
 
     expect(response.status).toBe(200);
@@ -93,7 +101,18 @@ describe("GET and PUT /api/users/:id", () => {
     expect(response.status).toBe(404);
   });
 
-  it("does not allow a teacher to delete another user", async () => {
+  it("allows a teacher to delete ANOTHER user", async () => {
+    // Cria um usuário novo isolado apenas para este teste, para não conflitar com outros testes
+    const userToDelete = await UserFactory.create({ role: UserRoleEnum.TEACHER });
+
+    const response = await request(app)
+      .delete(`/api/users/${userToDelete.id}`)
+      .set("Authorization", `Bearer ${teacherToken}`);
+
+    expect(response.status).toBe(200);
+  });
+
+  it("does not allow a teacher to delete THEMSELVES", async () => {
     const response = await request(app)
       .delete(`/api/users/${teacherId}`)
       .set("Authorization", `Bearer ${teacherToken}`);
